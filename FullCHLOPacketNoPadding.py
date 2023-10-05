@@ -13,11 +13,11 @@ class FullCHLOPacketNoPadding(Packet):
     name = "FullCHLO"
 
     fields_desc = [
-        XByteField("Public Flags", 0x19),
+        XByteField("Public_Flags", 0x19),
         StrFixedLenField("CID", string_to_ascii(""), 8),
         PacketField("Version", "Q039", "Q039"),
-        LEShortField("Packet Number", 1024),
+        LEShortField("Packet_Number", 1024),
 
         # Message authentication hash
-        StrFixedLenField("Message Authentication Hash", string_to_ascii(""), 12),
+        StrFixedLenField("Message_Authentication_Hash", string_to_ascii(""), 12),
     ]

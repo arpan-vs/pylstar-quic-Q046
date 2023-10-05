@@ -25,7 +25,7 @@ class SessionInstance:
     shlo_received = False
     nr_ack_send = 0
     connection_id_as_number = -1
-    destination_ip = "192.168.1.69"  # Home connectiopns
+    destination_ip = "127.0.0.1"  # Home connectiopns
     # destination_ip = "192.168.43.228"   # hotspot connections
     zero_rtt = False
     last_received_rej = ""  # We are only interested in the last REJ for the initial keys.

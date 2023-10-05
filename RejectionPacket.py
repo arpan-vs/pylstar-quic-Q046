@@ -7,10 +7,10 @@ from XStrFixedLenField import XStrFixedLenField
 class RejectionPacket(Packet):
     name = "REJPacket"
     fields_desc = [
-        XByteField("Public Flags", 0x0),
+        XByteField("Public_Flags", 0x0),
         XLongField("CID", int("0", 16)),
-        ByteField("Packet Number", 0),
-        XStrFixedLenField("Message Authentication Hash", "", 12),
+        ByteField("Packet_Number", 0),
+        XStrFixedLenField("Message_Authentication_Hash", "", 12),
         XByteField("Frame_type", 0x0),
         XByteField("Stream_Id", 0x0),
         StrFixedLenField("Tag_1", "", 4),

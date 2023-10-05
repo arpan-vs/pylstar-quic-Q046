@@ -13,19 +13,19 @@ class FullCHLOPacket(Packet):
     name = "FullCHLO"
 
     fields_desc = [
-        XByteField("Public Flags", 0x19),
+        XByteField("Public_Flags", 0x19),
         StrFixedLenField("CID", string_to_ascii(""), 8),
         StrFixedLenField("Version", "Q039", 4),
-        LEShortField("Packet Number", 1024),
+        LEShortField("Packet_Number", 1024),
 
         # Message authentication hash
-        StrFixedLenField("Message Authentication Hash", string_to_ascii(""), 12),
+        StrFixedLenField("Message_Authentication_Hash", string_to_ascii(""), 12),
 
-        XByteField("Frame Type", 0x84),
+        XByteField("Frame_Type", 0x84),
         XByteField("StreamId", 1),
         LEShortField("Offset", 4100),
         StrFixedLenField("Tag1", "CHLO", 4),
-        LEShortField("Tag Number", 17),
+        LEShortField("Tag_Number", 17),
         ShortField("Padding", 0),
 
         # List of tags
@@ -724,7 +724,7 @@ class FullCHLOPacket(Packet):
         XByteField("Padding635", 0x00),
         XByteField("Padding636", 0x00),
 
-        StrFixedLenField("Server Name Indication", "www.example.org", 15),
+        StrFixedLenField("Server_Name_Indication", "www.example.org", 15),
         StrFixedLenField("STK_Value", string_to_ascii("f7214fe6649467547b2c4e006d97c716097d05ac737b34f426404fd965e2290677fecb437701364808ec4af796bacea645afd897525ef16f"), 56),
         StrFixedLenField("SNO_Value", string_to_ascii("e4d458e2594b930f6d4f77711215adf9ebe99096c479dbf765f41d28646c4b87a0ec735e63cc4f19b9207d369e36968b2b2071ed"), 52),
         LEIntField("Version_Value", 0),

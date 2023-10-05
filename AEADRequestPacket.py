@@ -13,8 +13,8 @@ class AEADRequestPacket(Packet):
     name = "AEAD Packet"
 
     fields_desc = [
-        XByteField("Public Flags", 0x0),
+        XByteField("Public_Flags", 0x0),
         StrFixedLenField("CID", string_to_ascii(""), 8),
-        LEShortField("Packet Number", 0),
-        XStrFixedLenField("Message Authentication Hash", string_to_ascii(""), 12),
+        LEShortField("Packet_Number", 0),
+        XStrFixedLenField("Message_Authentication_Hash", string_to_ascii(""), 12),
     ]

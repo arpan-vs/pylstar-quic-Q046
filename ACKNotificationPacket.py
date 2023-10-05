@@ -11,10 +11,10 @@ class AckNotificationPacket(Packet):
     name = "Ack Notification Packet"
 
     fields_desc = [
-        XByteField("Public Flags", 0x18),
+        XByteField("Public_Flags", 0x18),
         StrFixedLenField("CID", string_to_ascii(""), 8),
-        LEShortField("Packet Number", 512),
+        LEShortField("Packet_Number", 512),
 
         # Message authentication hash
-        StrFixedLenField("Message Authentication Hash", string_to_ascii(""), 12),
+        StrFixedLenField("Message_Authentication_Hash", string_to_ascii(""), 12),
     ]

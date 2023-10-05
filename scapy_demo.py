@@ -8,7 +8,7 @@ from peewee import OperationalError
 from scapy import route # DO NOT REMOVE!!
 from scapy.config import conf
 from scapy.layers.inet import IP, UDP
-from scapy.layers.l2 import Raw
+from scapy.all import Raw
 from scapy.sendrecv import send, sr
 from scapy.supersocket import L3RawSocket
 from tqdm import tqdm
@@ -35,7 +35,7 @@ from crypto.dhke import dhke
 from crypto.fnv128a import FNV128A
 from events.Events import SendInitialCHLOEvent, SendGETRequestEvent, CloseConnectionEvent, SendFullCHLOEvent, \
     ZeroRTTCHLOEvent, ResetEvent
-from sniffer.sniffer import Sniffer
+# from sniffer.sniffer import Sniffer
 from util.NonDeterminismCatcher import NonDeterminismCatcher
 from util.RespondDummy import RespondDummy
 from util.SessionInstance import SessionInstance
@@ -48,10 +48,11 @@ import os
 
 
 # header lenght: 22 bytes
+DPORT=4433
 
 class Scapy:
 
-    sniffer = None
+    # sniffer = None
     learner = None
     response_times = []
     processed = False
@@ -73,9 +74,9 @@ class Scapy:
         logging.basicConfig(filename=filename, level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s %(message)s')
         self.logger = logging.getLogger(__name__)
 
-        self.sniffer = Sniffer()
-        self.sniffer.start()
-        self.sniffer.set_session_instance(PacketNumberInstance.get_instance(), self.logger)
+        # self.sniffer = Sniffer()
+        # self.sniffer.start()
+        # self.sniffer.set_session_instance(PacketNumberInstance.get_instance(), self.logger)
         # self.ndc = NonDeterminismCatcher(self.logger)
 
         dhke.set_up_my_keys()
@@ -129,23 +130,25 @@ class Scapy:
         conf.L3socket = L3RawSocket
 
         chlo.setfieldval('CID', string_to_ascii(SessionInstance.get_instance().connection_id))
-        chlo.setfieldval("Packet Number", PacketNumberInstance.get_instance().get_next_packet_number())
+        chlo.setfieldval("Packet_Number", PacketNumberInstance.get_instance().get_next_packet_number())
 
         associated_data = extract_from_packet(chlo, end=15)
         body = extract_from_packet(chlo, start=27)
 
         message_authentication_hash = FNV128A().generate_hash(associated_data, body)
-        chlo.setfieldval('Message Authentication Hash', string_to_ascii(message_authentication_hash))
+        chlo.setfieldval('Message_Authentication_Hash', string_to_ascii(message_authentication_hash))
 
         # Store chlo for the key derivation
         SessionInstance.get_instance().chlo = extract_from_packet_as_bytestring(chlo)
-        self.sniffer.add_observer(self)
+        # self.sniffer.add_observer(self)
 
-        p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=6121, sport=61250) / chlo
+        p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=DPORT, sport=61250) / chlo
+        # ans = sr(p)
+        # print(ans)
         send(p)
         self.wait_for_signal_or_expiration()
         self.processed = False
-        self.sniffer.remove_observer(self)
+        # self.sniffer.remove_observer(self)
 
     def wait_for_signal_or_expiration(self):
         # wait for a specific time otherwise
@@ -158,16 +161,19 @@ class Scapy:
         if expired:
             # print("General expired")
             if len(self.run_results) == 3 or True:
-                # Get the majority element
-                c = Counter(self.run_results)
-                value, count = c.most_common()[0]
-                self.learner.respond(value)
-                self.logger.info("General expired")
-                self.run += str(self.current_event)
-                # self.ndc.add_run(self.run, value)
-                self.run_results = []
-                self.previous_result = value
-                # self.reset(True, False)    # Reset the server
+                try:
+                    # Get the majority element
+                    c = Counter(self.run_results)
+                    value, count = c.most_common()[0]
+                    self.learner.respond(value)
+                    self.logger.info("General expired")
+                    self.run += str(self.current_event)
+                    # self.ndc.add_run(self.run, value)
+                    self.run_results = []
+                    self.previous_result = value
+                    # self.reset(True, False)    # Reset the server
+                except:
+                    pass
             else:
                 self.run_results.append("EXP")
                 self.logger.info("Received first time {} launching again".format("EXP"))
@@ -317,11 +323,11 @@ class Scapy:
         conf.L3socket = L3RawSocket
 
         chlo.setfieldval('CID', string_to_ascii(SessionInstance.get_instance().connection_id))
-        chlo.setfieldval("Packet Number", PacketNumberInstance.get_instance().get_next_packet_number())
+        chlo.setfieldval("Packet_Number", PacketNumberInstance.get_instance().get_next_packet_number())
 
         # print("First Ack Packet Number {}".format(int(str(PacketNumberInstance.get_instance().highest_received_packet_number), 16)))
-        chlo.setfieldval('Largest Acked', int(str(PacketNumberInstance.get_instance().highest_received_packet_number), 16))
-        chlo.setfieldval('First Ack Block Length', int(str(PacketNumberInstance.get_instance().highest_received_packet_number), 16))
+        chlo.setfieldval('Largest_Acked', int(str(PacketNumberInstance.get_instance().highest_received_packet_number), 16))
+        chlo.setfieldval('First_Ack_Block_Length', int(str(PacketNumberInstance.get_instance().highest_received_packet_number), 16))
 
         # chlo.setfieldval('Largest Acked', 3)
         # chlo.setfieldval('First Ack Block Length', 3)
@@ -333,11 +339,11 @@ class Scapy:
         # print("Body {}".format(body))
 
         message_authentication_hash = FNV128A().generate_hash(associated_data, body, True)
-        chlo.setfieldval('Message Authentication Hash', string_to_ascii(message_authentication_hash))
+        chlo.setfieldval('Message_Authentication_Hash', string_to_ascii(message_authentication_hash))
 
         # print("Sending first ACK...")
 
-        p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=6121, sport=61250) / chlo
+        p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=DPORT, sport=61250) / chlo
         send(p)
 
     def send_second_ack(self):
@@ -345,15 +351,15 @@ class Scapy:
         conf.L3socket = L3RawSocket
 
         chlo.setfieldval('CID', string_to_ascii(SessionInstance.get_instance().connection_id))
-        chlo.setfieldval("Packet Number", PacketNumberInstance.get_instance().get_next_packet_number())
+        chlo.setfieldval("Packet_Number", PacketNumberInstance.get_instance().get_next_packet_number())
 
         associated_data = extract_from_packet(chlo, end=15)
         body = extract_from_packet(chlo, start=27)
 
         message_authentication_hash = FNV128A().generate_hash(associated_data, body)
-        chlo.setfieldval('Message Authentication Hash', string_to_ascii(message_authentication_hash))
+        chlo.setfieldval('Message_Authentication_Hash', string_to_ascii(message_authentication_hash))
 
-        p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=6121, sport=61250) / chlo
+        p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=DPORT, sport=61250) / chlo
         send(p)
 
     def send_ack_for_encrypted_message(self):
@@ -367,7 +373,7 @@ class Scapy:
         next_packet_number_nonce = int(next_packet_number_int).to_bytes(2, byteorder='big')
         # print("Sending encrypted ack for packet number {}".format(next_packet_number_int))
 
-        ack.setfieldval("Packet Number", next_packet_number_int)
+        ack.setfieldval("Packet_Number", next_packet_number_int)
         highest_received_packet_number = format(int(PacketNumberInstance.get_instance().get_highest_received_packet_number(), 16), 'x')
 
         ack_body = "40"
@@ -393,10 +399,10 @@ class Scapy:
         ciphertext = ciphertext['data']
         # print("Ciphertext in ack {}".format(ciphertext))
 
-        ack.setfieldval("Message Authentication Hash", string_to_ascii(ciphertext[:24]))
+        ack.setfieldval("Message_Authentication_Hash", string_to_ascii(ciphertext[:24]))
         SessionInstance.get_instance().nr_ack_send += 1
 
-        p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=6121, sport=61250) / ack / Raw(load=string_to_ascii(ciphertext[24:]))
+        p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=DPORT, sport=61250) / ack / Raw(load=string_to_ascii(ciphertext[24:]))
         send(p)
 
     def handle_received_encrypted_packet(self, packet):
@@ -431,11 +437,11 @@ class Scapy:
         packet_number = PacketNumberInstance.get_instance().get_next_packet_number()
         ciphertext = CryptoManager.encrypt(bytes.fromhex("07"), packet_number, SessionInstance.get_instance())
 
-        ping.setfieldval('Packet Number', packet_number)
-        ping.setfieldval("Message Authentication Hash", string_to_ascii(ciphertext[:24]))
+        ping.setfieldval('Packet_Number', packet_number)
+        ping.setfieldval("Message_Authentication_Hash", string_to_ascii(ciphertext[:24]))
 
         conf.L3socket = L3RawSocket
-        p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=6121, sport=61250) / ping / Raw(load=string_to_ascii(ciphertext[24:]))
+        p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=DPORT, sport=61250) / ping / Raw(load=string_to_ascii(ciphertext[24:]))
         # Maybe we cannot assume that is just a version negotiation packet?
         send(p)
 
@@ -449,29 +455,29 @@ class Scapy:
         # Lets just create the public key for DHKE
         dhke.set_up_my_keys()
 
-        chlo.setfieldval("Packet Number", PacketNumberInstance.get_instance().get_next_packet_number())
+        chlo.setfieldval("Packet_Number", PacketNumberInstance.get_instance().get_next_packet_number())
         chlo.setfieldval('PUBS_Value', string_to_ascii(SessionInstance.get_instance().public_values_bytes))
 
         associated_data = extract_from_packet(chlo, end=15)
         body = extract_from_packet(chlo, start=27)
 
         message_authentication_hash = FNV128A().generate_hash(associated_data, body)
-        chlo.setfieldval('Message Authentication Hash', string_to_ascii(message_authentication_hash))
+        chlo.setfieldval('Message_Authentication_Hash', string_to_ascii(message_authentication_hash))
 
         conf.L3socket = L3RawSocket
         SessionInstance.get_instance().chlo = extract_from_packet_as_bytestring(chlo, start=31)   # CHLO from the CHLO tag, which starts at offset 26 (22 header + frame type + stream id + offset)
 
         # print("Send full CHLO")
 
-        p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=6121, sport=61250) / chlo
+        p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=DPORT, sport=61250) / chlo
         # Maybe we cannot assume that is just a version negotiation packet?
         # ans, _ = sr(p)
-        self.sniffer.add_observer(self)
+        # self.sniffer.add_observer(self)
         send(p)
         self.wait_for_signal_or_expiration()
 
         self.processed = False
-        self.sniffer.remove_observer(self)
+        # self.sniffer.remove_observer(self)
 
     def close_connection(self):
         """
@@ -488,20 +494,20 @@ class Scapy:
         ciphertext = CryptoManager.encrypt(bytes.fromhex(frame_data), packet_number, SessionInstance.get_instance(), self.logger)
 
         a = AEADRequestPacket()
-        a.setfieldval("Public Flags", 0x18)
-        a.setfieldval('Packet Number', packet_number)
-        a.setfieldval("Message Authentication Hash", string_to_ascii(ciphertext[0:24]))
+        a.setfieldval("Public_Flags", 0x18)
+        a.setfieldval('Packet_Number', packet_number)
+        a.setfieldval("Message_Authentication_Hash", string_to_ascii(ciphertext[0:24]))
         a.setfieldval('CID', string_to_ascii(SessionInstance.get_instance().connection_id))
 
         self.logger.info("Closing connection {}".format(SessionInstance.get_instance().connection_id))
 
         self.logger.info("With ciphertext {}".format(ciphertext))
-        p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=6121, sport=61250) / a / Raw(load=string_to_ascii(ciphertext[24:]))
+        p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=DPORT, sport=61250) / a / Raw(load=string_to_ascii(ciphertext[24:]))
         # ans, _ = sr(p, count=3)
         send(p)
         self.wait_for_signal_or_expiration()
         self.processed = False
-        self.sniffer.remove_observer(self)
+        # self.sniffer.remove_observer(self)
         time.sleep(1)
 
     def send_full_chlo_to_existing_connection(self):
@@ -621,19 +627,19 @@ class Scapy:
             # dhke.generate_keys(bytes.fromhex(previous_session.public_value), False)
             # ciphertext = CryptoManager.encrypt(bytes.fromhex(SessionInstance.get_instance().chlo), 1)
             #
-            a.setfieldval('Message Authentication Hash', string_to_ascii(message_authentication_hash))
+            a.setfieldval('Message_Authentication_Hash', string_to_ascii(message_authentication_hash))
             #
             # print("Send full CHLO from existing connection")
             #
-            p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=6121, sport=61250) / a / Raw(
+            p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=DPORT, sport=61250) / a / Raw(
                 load=string_to_ascii(body))
             # # Maybe we cannot assume that is just a version negotiation packet?
-            self.sniffer.add_observer(self)
+            # self.sniffer.add_observer(self)
             send(p)
             self.wait_for_signal_or_expiration()
 
             self.processed = False
-            self.sniffer.remove_observer(self)
+            # self.sniffer.remove_observer(self)
         except Exception:
             self.send_chlo(False)
 
@@ -663,20 +669,20 @@ class Scapy:
         # Send it to the server
         a = AEADRequestPacket()
         a.setfieldval('CID', string_to_ascii(SessionInstance.get_instance().connection_id))
-        a.setfieldval("Public Flags", 0x18)
-        a.setfieldval('Packet Number', packet_number)
-        a.setfieldval("Message Authentication Hash", string_to_ascii(ciphertext[0:24]))
+        a.setfieldval("Public_Flags", 0x18)
+        a.setfieldval('Packet_Number', packet_number)
+        a.setfieldval("Message_Authentication_Hash", string_to_ascii(ciphertext[0:24]))
 
-        p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=6121, sport=61250) / a / Raw(
+        p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=DPORT, sport=61250) / a / Raw(
             load=string_to_ascii(ciphertext[24:]))
-        self.sniffer.add_observer(self)
+        # self.sniffer.add_observer(self)
         send(p)
         self.wait_for_signal_or_expiration()
         self.processed = False
-        self.sniffer.remove_observer(self)
+        # self.sniffer.remove_observer(self)
 
-    def stop_sniffer(self):
-        self.sniffer.stop_sniffing()
+    # def stop_sniffer(self):
+    #     self.sniffer.stop_sniffing()
 
     def send(self, command, deterministic_repeat=False):
         self.logger.info(command)
@@ -717,36 +723,38 @@ class Scapy:
 
 
 s = Scapy()
+# s.send(SendInitialCHLOEvent())
+s.send(SendFullCHLOEvent())
 
 # try:
-# operations = [(s.send_chlo, False), (s.send_full_chlo, True), (s.send_full_chlo_to_existing_connection, True), (s.send_encrypted_request, True), (s.close_connection, True), (s.reset, False)]
-# print("Starting now {}".format(time.time()))
-# for i in range(2):
-#     random.shuffle(operations)
-#     for operation, encrypted in operations:
-#         print("PERFORMING OPERATION {}".format(operation))
-#         operation()
-#         print("FINISHED OPERATION {}".format(operation))
-#         time.sleep(2)
-# print("Done?!")
-times = []
-for i in tqdm(range(10)):
-# s.logger.info(">>>>>>>>>>>> Starting with round {}".format(i))
-# s.logger.info("Resetting")
-    s.send(ResetEvent())
-    start = time.time()
-    s.send(SendInitialCHLOEvent())
-#     s.send(SendInitialCHLOEvent())
-    s.send(SendFullCHLOEvent())
-    s.send(SendGETRequestEvent())
-    s.send(CloseConnectionEvent())
-    times.append(time.time()-start)
+#     operations = [(s.send_chlo, False), (s.send_full_chlo, True), (s.send_full_chlo_to_existing_connection, True), (s.send_encrypted_request, True), (s.close_connection, True), (s.reset, False)]
+#     print("Starting now {}".format(time.time()))
+#     for i in range(2):
+#         random.shuffle(operations)
+#         for operation, encrypted in operations:
+#             print("PERFORMING OPERATION {}".format(operation))
+#             operation()
+#             print("FINISHED OPERATION {}".format(operation))
+#             time.sleep(2)
+# except:
+#     print("Fail")
+# # print("Done?!")
+# times = []
+# for i in tqdm(range(10)):
+#     s.logger.info(">>>>>>>>>>>> Starting with round {}".format(i))
+#     s.logger.info("Resetting")
+#     s.send(ResetEvent())
+#     start = time.time()
+#     # s.send(SendInitialCHLOEvent())
+#     # s.send(SendGETRequestEvent())
+#     # s.send(CloseConnectionEvent())
+#     times.append(time.time()-start)
 #     s.send(CloseConnectionEvent())
-    s.logger.info("Currently at {} out of 10".format(i))
+#     s.logger.info("Currently at {} out of 10".format(i))
 
-times = sorted(times)
-s.logger.info("All execution times {}".format(times))
-s.logger.info("Median execution time is {}".format(median(times)))
+# times = sorted(times)
+# s.logger.info("All execution times {}".format(times))
+# s.logger.info("Median execution time is {}".format(median(times)))
 
 # s.send(ResetEvent())
 # s.send(ZeroRTTCHLOEvent())

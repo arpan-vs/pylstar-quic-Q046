@@ -12,31 +12,31 @@ class QUICHeader(Packet):
     """
     name = "QUIC"
     fields_desc = [
-        XByteField("Public Flags", 0x19),
+        XByteField("Public_Flags", 0x19),
         StrFixedLenField("CID", string_to_ascii(""), 8),
         StrFixedLenField("Version", "Q039", 4),
-        LEShortField("Packet Number", 256),
+        LEShortField("Packet_Number", 256),
         # Message Authentication Hash, 12 bytes
 
-        StrFixedLenField("Message Authentication Hash", string_to_ascii("5f67187558566e93f02ce5d0"), 12),
+        StrFixedLenField("Message_Authentication_Hash", string_to_ascii("5f67187558566e93f02ce5d0"), 12),
 
-        XByteField("Frame Type", 0x80),  # Stream
-        ByteField("Stream ID", 1),
+        XByteField("Frame_Type", 0x80),  # Stream
+        ByteField("Stream_ID", 1),
         # LEShortField("Data Length", 5125),
         StrFixedLenField("Tag1", "CHLO", 4),
-        LEShortField("Tag Number", 9),
+        LEShortField("Tag_Number", 9),
         ShortField("Padding", 0),
         StrFixedLenField("PAD", "PAD", 3),
         ByteField("Xtra", 0),
         LEIntField("tag_offset_end", 905),
         StrFixedLenField("SNI", "SNI", 3),
-        ByteField("Xtra 2", 0),
+        ByteField("Xtra_2", 0),
         LEIntField("tag_offset_end_2", 920),
         StrFixedLenField("VER", "VER", 3),
-        ByteField("Xtra 3", 0),
+        ByteField("Xtra_3", 0),
         LEIntField("tag_offset_end_3", 924),
         StrFixedLenField("CCS", "CCS", 3),
-        ByteField("Xtra 4", 0),
+        ByteField("Xtra_4", 0),
         LEIntField("tag_offset_end_4", 940),
         # StrFixedLenField("MSPC", "MSPC", 4),
         # ByteField("Xtra 5", 0),
@@ -981,7 +981,7 @@ class QUICHeader(Packet):
         XByteField("Padding904", 0x00),
 
 
-        StrFixedLenField("Server Name Indication", "www.example.org", 15),
+        StrFixedLenField("Server_Name_Indication", "www.example.org", 15),
         LEIntField("Version_Value", 0),
 
         # Common Certificate Sets
