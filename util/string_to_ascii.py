@@ -21,3 +21,17 @@ def string_to_ascii(value):
         return output
     except Exception:
         return ""
+
+def string_to_ascii1(value):
+    """
+    Not the best method name, but you can copy the value from a key in Wireshark
+    And use this method to get the same value to use for Scapy.
+    :param value:
+    :return:
+    """
+    n = 2
+
+    try:
+        return bytes.fromhex(value)
+    except Exception:
+        return ""

@@ -4,7 +4,7 @@ import struct
 class PacketNumberInstance:
 
     __instance = None
-    next_packet_number = 1  # This is represented as 00 01, 00 02, 00 03, ... and returned as int
+    next_packet_number = 0     # This is represented as 00 01, 00 02, 00 03, ... and returned as int
     highest_received_packet_number = "01"
 
     @staticmethod
@@ -35,7 +35,7 @@ class PacketNumberInstance:
 
         # increment the normal int
         self.next_packet_number += 1
-        return use_big_end_int
+        return self.next_packet_number
 
     def update_highest_received_packet_number(self, new_highest: int):
         if new_highest > int(self.highest_received_packet_number):

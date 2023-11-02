@@ -8,10 +8,9 @@ from peewee import OperationalError
 from scapy import route # DO NOT REMOVE!!
 from scapy.config import conf
 from scapy.layers.inet import IP, UDP
-from scapy.all import Raw
+from scapy.all import Raw, bytes_hex
 from scapy.sendrecv import send, sr
 from scapy.supersocket import L3RawSocket
-from tqdm import tqdm
 
 from ACKNotificationPacket import AckNotificationPacket
 from ACKPacket import ACKPacket
@@ -23,7 +22,7 @@ from FullCHLOPacket import FullCHLOPacket
 from FullCHLOPacketNoPadding import FullCHLOPacketNoPadding
 from PacketNumberInstance import PacketNumberInstance
 from PingPacket import PingPacket
-from QUIC import QUICHeader
+from QUIC_43_localhost import QUICHeader
 from RejectionPacket import RejectionPacket
 from SecondACKPacket import SecondACKPacket
 from caching.CacheInstance import CacheInstance
@@ -35,24 +34,24 @@ from crypto.dhke import dhke
 from crypto.fnv128a import FNV128A
 from events.Events import SendInitialCHLOEvent, SendGETRequestEvent, CloseConnectionEvent, SendFullCHLOEvent, \
     ZeroRTTCHLOEvent, ResetEvent
-# from sniffer.sniffer import Sniffer
+from sniffer.sniffer import Sniffer
 from util.NonDeterminismCatcher import NonDeterminismCatcher
 from util.RespondDummy import RespondDummy
 from util.SessionInstance import SessionInstance
 from util.packet_to_hex import extract_from_packet, extract_from_packet_as_bytestring
 from util.split_at_every_n import split_at_nth_char
-from util.string_to_ascii import string_to_ascii
+from util.string_to_ascii import string_to_ascii, string_to_ascii1
 import time
 import logging
 import os
 
 
 # header lenght: 22 bytes
-DPORT=4433
+DPORT=443
 
 class Scapy:
 
-    # sniffer = None
+    sniffer = None
     learner = None
     response_times = []
     processed = False
@@ -71,13 +70,13 @@ class Scapy:
     def __init__(self) -> None:
         currenttime = datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")
         filename = 'log_{}.txt'.format(currenttime)
-        logging.basicConfig(filename=filename, level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s %(message)s')
+        #logging.basicConfig(filename=filename, level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s %(message)s')
         self.logger = logging.getLogger(__name__)
 
         # self.sniffer = Sniffer()
         # self.sniffer.start()
         # self.sniffer.set_session_instance(PacketNumberInstance.get_instance(), self.logger)
-        # self.ndc = NonDeterminismCatcher(self.logger)
+        # # self.ndc = NonDeterminismCatcher(self.logger)
 
         dhke.set_up_my_keys()
         self.learner = RespondDummy()
@@ -105,7 +104,7 @@ class Scapy:
 
         self.run = ""
         self.previous_result = ""
-        PacketNumberInstance.get_instance().reset()
+        # PacketNumberInstance.get_instance().reset()
         conn_id = random.getrandbits(64)
         SessionInstance.get_instance().shlo_received = False
         SessionInstance.get_instance().scfg = ""
@@ -119,36 +118,85 @@ class Scapy:
         # print("Only reset? {}".format(only_reset))
         self.reset(only_reset)
 
-        if only_reset:
-            self.learner.respond("RESET")
-            return
+        # if only_reset:
+        #     self.learner.respond("RESET")
+        #     return
 
         # print(SessionInstance.get_instance().connection_id)
 
         # print("Sending CHLO")
         chlo = QUICHeader()
         conf.L3socket = L3RawSocket
+        # cid_value = '30b2ac1ba2572005'
+        # chlo.setfieldval('CID', string_to_ascii1(cid_value))
+        # print(SessionInstance.get_instance().connection_id)
+        chlo.setfieldval('CID', string_to_ascii1(SessionInstance.get_instance().connection_id))
+        # chlo.setfieldval("Packet_Number", PacketNumberInstance.get_instance().get_next_packet_number())
+        # print(PacketNumberInstance.get_instance())
+        x = PacketNumberInstance.get_instance().get_next_packet_number()
+        # print(x)
+        chlo.setfieldval("Packet_Number", string_to_ascii1(str("%02x" % x)))
 
-        chlo.setfieldval('CID', string_to_ascii(SessionInstance.get_instance().connection_id))
-        chlo.setfieldval("Packet_Number", PacketNumberInstance.get_instance().get_next_packet_number())
-
-        associated_data = extract_from_packet(chlo, end=15)
-        body = extract_from_packet(chlo, start=27)
+        associated_data = extract_from_packet(chlo, end=14)
+        body = extract_from_packet(chlo, start=26)
 
         message_authentication_hash = FNV128A().generate_hash(associated_data, body)
-        chlo.setfieldval('Message_Authentication_Hash', string_to_ascii(message_authentication_hash))
+        print(message_authentication_hash)
+        chlo.setfieldval('Message_Authentication_Hash', string_to_ascii1(message_authentication_hash))
+        
+        # mac_val = b'\xf3\x3e\x04\xda\x45\xca\x71\x9c\x49\x9c\xf6\x58'
+        # chlo.setfieldval('Message_Authentication_Hash', mac_val)
 
         # Store chlo for the key derivation
         SessionInstance.get_instance().chlo = extract_from_packet_as_bytestring(chlo)
         # self.sniffer.add_observer(self)
 
-        p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=DPORT, sport=61250) / chlo
-        # ans = sr(p)
-        # print(ans)
-        send(p)
-        self.wait_for_signal_or_expiration()
-        self.processed = False
+
+        p = IP(dst="127.0.0.1") / UDP(dport=DPORT, sport=61250) / chlo
+        ans, unans = sr(p)
+        print(ans.show())
+        x = bytes(ans[0][1][UDP][Raw])[26:29]
+        print(x)
+        # for i in x:
+        #     print(i)
+        # print(unans.show())
+        # self.sniffer.run()
+        # send(p)
+        # self.wait_for_signal_or_expiration()
+        # self.processed = False
         # self.sniffer.remove_observer(self)
+
+
+        # # chlo = QUICHeader()
+        # # conf.L3socket = L3RawSocket
+        # cid_value = b'\x63\x7f\x8c\x0e\x82\x3a\x00\x9a'
+        # chlo.setfieldval('CID', cid_value)
+
+        # # chlo.setfieldval('CID', string_to_ascii(SessionInstance.get_instance().connection_id))
+        # # chlo.setfieldval("Packet_Number", PacketNumberInstance.get_instance().get_next_packet_number())
+        # # print(PacketNumberInstance.get_instance())
+        # chlo.setfieldval("Packet_Number", b'\x02')
+
+        # associated_data = extract_from_packet(chlo, end=14)
+        # body = extract_from_packet(chlo, start=26)
+
+        # # message_authentication_hash = FNV128A().generate_hash(associated_data, body)
+        # # chlo.setfieldval('Message_Authentication_Hash', string_to_ascii(message_authentication_hash))
+        
+        # mac_val = b'\xcb\x1d\x58\xba\xb3\x06\x74\xd0\x0f\x00\x55\x4d'
+        # chlo.setfieldval('Message_Authentication_Hash', mac_val)
+
+        # # Store chlo for the key derivation
+        # SessionInstance.get_instance().chlo = extract_from_packet_as_bytestring(chlo)
+        # # self.sniffer.add_observer(self)
+
+        # p = IP(dst="52.55.120.73") / UDP(dport=DPORT, sport=61250) / chlo
+        # # ans,unans = sr(p)
+        # # print(ans.show())
+        # send(p)
+        # # self.wait_for_signal_or_expiration()
+        # # self.processed = False
+        # # self.sniffer.remove_observer(self)
 
     def wait_for_signal_or_expiration(self):
         # wait for a specific time otherwise
@@ -723,8 +771,8 @@ class Scapy:
 
 
 s = Scapy()
-# s.send(SendInitialCHLOEvent())
-s.send(SendFullCHLOEvent())
+s.send(SendInitialCHLOEvent())
+# s.send(SendFullCHLOEvent())
 
 # try:
 #     operations = [(s.send_chlo, False), (s.send_full_chlo, True), (s.send_full_chlo_to_existing_connection, True), (s.send_encrypted_request, True), (s.close_connection, True), (s.reset, False)]

@@ -42,8 +42,8 @@ class Sniffer(Thread):
         try:
             self.__stop_sniffing = False
             print("Sniffing started")
-            nr_packets = sniff(prn=self.inform_observer, filter="udp and dst port 61250 and src port 6121", stop_filter=self.do_i_need_to_stop)
-            print("Sniffing stopped with {}".format(nr_packets))
+            nr_packets = sniff(prn=self.inform_observer, filter="udp and dst port 61250 and src port 443", stop_filter=self.do_i_need_to_stop)
+            print("Sniffing stopped with {}".format(nr_packets.hexdump()))
         except Exception as err:
             print("Exception has occured! {}".format(err))
             self.__logger.exception(err)

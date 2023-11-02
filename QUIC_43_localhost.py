@@ -16,7 +16,7 @@ class QUICHeader(Packet):
         StrFixedLenField("CID", string_to_ascii(""), 8),
         StrFixedLenField("Version", "Q043", 4),
         StrFixedLenField("Packet_Number", 1, 1), # LEShortField
-        # ByteField("Packet_Number", 1), # LEShortField
+        # LEShortField("Packet_Number", 2), # LEShortField
 
         # Message Authentication Hash, 12 bytes
         StrFixedLenField("Message_Authentication_Hash", string_to_ascii("5f67187558566e93f02ce5d0"), 12),
@@ -32,7 +32,7 @@ class QUICHeader(Packet):
 
         StrFixedLenField("PAD", "PAD", 3),
         ByteField("Xtra_1", 0),
-        LEIntField("tag_offset_end_1", 779),
+        LEIntField("tag_offset_end_1", 791),
         
         StrFixedLenField("SNI", "SNI", 3), #9
         ByteField("Xtra_2", 0),
@@ -893,18 +893,18 @@ class QUICHeader(Packet):
         XByteField("Padding776", 0x2d),
         XByteField("Padding777", 0x2d),
         XByteField("Padding778", 0x2d),
-        # XByteField("Padding779", 0x2d),
-        # XByteField("Padding780", 0x2d),
-        # XByteField("Padding781", 0x2d),
-        # XByteField("Padding782", 0x2d),
-        # XByteField("Padding783", 0x2d),
-        # XByteField("Padding784", 0x2d),
-        # XByteField("Padding785", 0x2d),
-        # XByteField("Padding786", 0x2d),
-        # XByteField("Padding787", 0x2d),
-        # XByteField("Padding788", 0x2d),
-        # XByteField("Padding789", 0x2d),
-        # XByteField("Padding790", 0x2d),
+        XByteField("Padding779", 0x2d),
+        XByteField("Padding780", 0x2d),
+        XByteField("Padding781", 0x2d),
+        XByteField("Padding782", 0x2d),
+        XByteField("Padding783", 0x2d),
+        XByteField("Padding784", 0x2d),
+        XByteField("Padding785", 0x2d),
+        XByteField("Padding786", 0x2d),
+        XByteField("Padding787", 0x2d),
+        XByteField("Padding788", 0x2d),
+        XByteField("Padding789", 0x2d),
+        XByteField("Padding790", 0x2d),
         #XByteField("Padding791", 0x00),
         #XByteField("Padding792", 0x00),
         #XByteField("Padding793", 0x00),
@@ -988,7 +988,7 @@ class QUICHeader(Packet):
         #XByteField("Padding871", 0x00),
         #XByteField("Padding872", 0x00),
 
-        StrFixedLenField("Server_Name_Indication", "www.litespeedtech.com", 21),
+        StrFixedLenField("Server_Name_Indication", "localhost", 9),
         LEIntField("Version_Value", 0x33343051), # 0x51303433 0x33343051  Q043 = 0x33343051, Q039 = 0x3633051
 
         #LEIntField("AEAD_Value", 0x41455347), # 0x47534541
