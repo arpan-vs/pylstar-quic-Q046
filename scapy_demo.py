@@ -214,7 +214,7 @@ class Scapy:
 
         fullchlo.setfieldval('PUBS_Value', string_to_ascii(SessionInstance.get_instance().public_values_bytes)) #incomplete
 
-        print('PUBS_Value', string_to_ascii(SessionInstance.get_instance().public_values_bytes))
+        # print('PUBS_Value', string_to_ascii(SessionInstance.get_instance().public_values_bytes))
 
         associated_data = extract_from_packet(fullchlo, end=14)
         body = extract_from_packet(fullchlo, start=26)

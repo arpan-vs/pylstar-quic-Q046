@@ -23,13 +23,13 @@ class FullCHLOPacket(Packet):
         StrFixedLenField("Message_Authentication_Hash", string_to_ascii("5f67187558566e93f02ce5d0"), 12),
 
         
-        XByteField("Frame_Type", 0xa0),  # Stream
+        XByteField("Frame_Type", 0xa4),  # Stream
         ByteField("Stream_ID", 1),
         # StrFixedLenField("Offset", string_to_ascii("0400"), 2),
-        # LEShortField("Offset", 0x0004),  # there in the source
-        XByteField("Offset0", 0x04),  # Stream
-        XByteField("Offset1", 0x00),  # Stream
+        # XByteField("Offset0", 0x04),  # Stream
+        # XByteField("Offset1", 0x00),  # Stream
 
+        LEShortField("Offset", 0x0004),  # there in the source
         LEShortField("Data_Length", 0x0004), #LEIntField
         StrFixedLenField("Tag1", "CHLO", 4),
         LEShortField("Tag_Number", 23),
