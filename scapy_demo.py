@@ -1,4 +1,5 @@
 import datetime
+import time, os
 import json
 import random
 from collections import Counter
@@ -40,7 +41,7 @@ from util.RespondDummy import RespondDummy
 from util.SessionInstance import SessionInstance
 from util.packet_to_hex import extract_from_packet, extract_from_packet_as_bytestring
 from util.split_at_every_n import split_at_nth_char
-from util.string_to_ascii import string_to_ascii, string_to_ascii1
+from util.string_to_ascii import string_to_ascii_old, string_to_ascii
 import time
 import logging
 import os
@@ -127,22 +128,22 @@ class Scapy:
         # print("Sending CHLO")
         chlo = QUICHeader()
         conf.L3socket = L3RawSocket
-        # cid_value = '30b2ac1ba2572005'
+        # cid_value = '30c2b2c2ac1bc2c0'
         # chlo.setfieldval('CID', string_to_ascii1(cid_value))
         # print(SessionInstance.get_instance().connection_id)
-        chlo.setfieldval('CID', string_to_ascii1(SessionInstance.get_instance().connection_id))
+        chlo.setfieldval('CID', string_to_ascii(SessionInstance.get_instance().connection_id))
         # chlo.setfieldval("Packet_Number", PacketNumberInstance.get_instance().get_next_packet_number())
         # print(PacketNumberInstance.get_instance())
         x = PacketNumberInstance.get_instance().get_next_packet_number()
         # print(x)
-        chlo.setfieldval("Packet_Number", string_to_ascii1(str("%02x" % x)))
+        chlo.setfieldval("Packet_Number", string_to_ascii(str("%02x" % x)))
 
         associated_data = extract_from_packet(chlo, end=14)
         body = extract_from_packet(chlo, start=26)
 
         message_authentication_hash = FNV128A().generate_hash(associated_data, body)
         print(message_authentication_hash)
-        chlo.setfieldval('Message_Authentication_Hash', string_to_ascii1(message_authentication_hash))
+        chlo.setfieldval('Message_Authentication_Hash', string_to_ascii(message_authentication_hash))
         
         # mac_val = b'\xf3\x3e\x04\xda\x45\xca\x71\x9c\x49\x9c\xf6\x58'
         # chlo.setfieldval('Message_Authentication_Hash', mac_val)
@@ -152,16 +153,89 @@ class Scapy:
         # self.sniffer.add_observer(self)
 
 
-        p = IP(dst="127.0.0.1") / UDP(dport=DPORT, sport=61250) / chlo
+        p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=DPORT, sport=61250) / chlo
+        ans, unans = sr(p)
+        # print(ans.show())
+        packet = bytes(ans[0][1][UDP][Raw])
+        packet_type = packet[16+10: 16+10+3+1]
+        STK = packet[16*5+10: 16*5+10+60]
+        SNO = packet[16*9+6: 16*9+6+56]
+        PROF = packet[16*12+14: 16*12+14+256]
+        SCFG = packet[16*28+14: 16*28+14+175]
+        RREJ = packet[16*39+13: 16*39+13+4]
+        STTL = packet[16*40+1: 16*40+1+8]
+        CRT = packet[16*40+9: 16*40+9+696]
+        SCID = packet[16*35+2: 16*35+2+16]
+        PUBS = packet[16*36+6: 16*36+6+35]
+
+
+
+
+        print("Packet recieved : ",packet_type.decode())
+        # # # print(ans[0][1][UDP][Raw].show())
+        # print("STK : ",STK.hex())
+        # print()
+        # print("SNO : ",SNO.hex())
+        # print()
+        # print("PROF : ",PROF.hex())
+        # print()
+        # print("SCFG : ",SCFG.hex())
+        # print()
+        # print("RREJ : ",RREJ.hex())
+        # print()
+        # print("STTL : ",STTL.hex())
+        # print()
+        # print("CRT : ",CRT.hex())
+
+        fullchlo = FullCHLOPacket()
+
+
+
+        fullchlo.setfieldval('CID', string_to_ascii(SessionInstance.get_instance().connection_id))
+        fullchlo.setfieldval('SCID_Value', SessionInstance.get_instance().server_config_id)
+        fullchlo.setfieldval('STK_Value', string_to_ascii(STK.hex()))
+        fullchlo.setfieldval('SNO_Value', string_to_ascii(SNO.hex()))
+        fullchlo.setfieldval('SCID_Value', string_to_ascii(SCID.hex())) #incomplete
+
+
+        epochtime = str(hex(int(time.time())))
+        epoch = ''.join([epochtime[i:i+2] for i in range(0,len(epochtime),2)][1:][::-1])
+        sORBIT = '0'*16
+        randomString = bytes.hex(os.urandom(20))
+        NONC = epoch + sORBIT + randomString
+        fullchlo.setfieldval('NONC_Value',string_to_ascii(NONC))
+
+        # Lets just create the public key for DHKE
+        dhke.set_up_my_keys()
+
+        x = PacketNumberInstance.get_instance().get_next_packet_number()
+        # print(x)
+        fullchlo.setfieldval("Packet_Number", string_to_ascii(str("%02x" % x)))
+
+        fullchlo.setfieldval('PUBS_Value', string_to_ascii(SessionInstance.get_instance().public_values_bytes)) #incomplete
+
+        print('PUBS_Value', string_to_ascii(SessionInstance.get_instance().public_values_bytes))
+
+        associated_data = extract_from_packet(fullchlo, end=14)
+        body = extract_from_packet(fullchlo, start=26)
+
+        message_authentication_hash = FNV128A().generate_hash(associated_data, body)
+        fullchlo.setfieldval('Message_Authentication_Hash', string_to_ascii(message_authentication_hash))
+
+        conf.L3socket = L3RawSocket
+        SessionInstance.get_instance().chlo = extract_from_packet_as_bytestring(chlo, start=31)   # CHLO from the CHLO tag, which starts at offset 26 (22 header + frame type + stream id + offset)
+
+        print("Send full CHLO")
+
+        p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=DPORT, sport=61250) / fullchlo
+
         ans, unans = sr(p)
         print(ans.show())
-        x = bytes(ans[0][1][UDP][Raw])[26:29]
-        print(x)
-        # for i in x:
-        #     print(i)
-        # print(unans.show())
-        # self.sniffer.run()
-        # send(p)
+
+
+
+
+
         # self.wait_for_signal_or_expiration()
         # self.processed = False
         # self.sniffer.remove_observer(self)

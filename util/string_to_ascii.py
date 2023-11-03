@@ -1,4 +1,4 @@
-def string_to_ascii(value):
+def string_to_ascii_old(value):
     """
     Not the best method name, but you can copy the value from a key in Wireshark
     And use this method to get the same value to use for Scapy.
@@ -22,7 +22,7 @@ def string_to_ascii(value):
     except Exception:
         return ""
 
-def string_to_ascii1(value):
+def string_to_ascii(value):
     """
     Not the best method name, but you can copy the value from a key in Wireshark
     And use this method to get the same value to use for Scapy.
