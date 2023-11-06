@@ -1,3 +1,4 @@
+import random
 from pylstar.LSTAR import LSTAR
 from pylstar.ActiveKnowledgeBase import ActiveKnowledgeBase
 from pylstar.Letter import Letter, EmptyLetter
@@ -9,9 +10,11 @@ import time
 
 from mapper import *
 
-from scapy_demo import Scapy
+from gquic_43 import Scapy
+from PacketNumberInstance import PacketNumberInstance
+from util.SessionInstance import SessionInstance
 
-s = Scapy()
+# s = Scapy()
 
 class QUICServerKnowledgeBase(ActiveKnowledgeBase):
     def __init__(self, target_host, target_port, timeout=5):
@@ -47,7 +50,9 @@ class QUICServerKnowledgeBase(ActiveKnowledgeBase):
         try:
             output_letters = [self._submit_letter(s, letter) for letter in word.letters]
         finally:
-            s.close_connection()
+            PacketNumberInstance.get_instance().reset()
+            SessionInstance.get_instance().connection_id = str(format(random.getrandbits(64), 'x').zfill(16))
+            print("-"*30)
 
         return Word(letters=output_letters)
 
@@ -55,18 +60,21 @@ class QUICServerKnowledgeBase(ActiveKnowledgeBase):
         output_letter = EmptyLetter()
         try:
             to_send = ''.join([symbol for symbol in letter.symbols])
-            output_letter = Letter(QuicInputMapper(to_send, s))
+            processed = QuicInputMapper(to_send, s)
+            output = QuicOutputMapper(processed)
+            print("to_send : ",to_send, "output : ",output)
+            output_letter = Letter(output)
         except Exception as e:
             self._logger.error(e)
 
         return output_letter
 
 
-    def _send_and_receive(self, s, data):
-        print('input:',data)
-        s.sendall(data.encode("utf8"))
-        time.sleep(0.1)
-        outdata = s.recv(1024).decode("utf8").strip()
-        print('output:',outdata)
-        # outputlist.add(outdata)
-        return outdata
+    # def _send_and_receive(self, s, data):
+    #     print('input:',data)
+    #     s.sendall(data.encode("utf8"))
+    #     time.sleep(0.1)
+    #     outdata = s.recv(1024).decode("utf8").strip()
+    #     print('output:',outdata)
+    #     # outputlist.add(outdata)
+    #     return outdata

@@ -45,5 +45,5 @@ class PacketNumberInstance:
         return self.highest_received_packet_number
 
     def reset(self):
-        self.next_packet_number = 1
+        self.next_packet_number = 0
         self.highest_received_packet_number = "01"

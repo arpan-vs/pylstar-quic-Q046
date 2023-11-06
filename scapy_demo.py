@@ -155,7 +155,7 @@ class Scapy:
 
         p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=DPORT, sport=61250) / chlo
         ans, unans = sr(p)
-        # print(ans.show())
+
         packet = bytes(ans[0][1][UDP][Raw])
         packet_type = packet[16+10: 16+10+3+1]
         STK = packet[16*5+10: 16*5+10+60]
@@ -169,7 +169,7 @@ class Scapy:
         PUBS = packet[16*36+6: 16*36+6+35]
 
 
-
+        SessionInstance.get_instance().peer_public_value = bytes.fromhex(PUBS[3:].hex())
 
         print("Packet recieved : ",packet_type.decode())
         # # # print(ans[0][1][UDP][Raw].show())
@@ -186,7 +186,7 @@ class Scapy:
         # print("STTL : ",STTL.hex())
         # print()
         # print("CRT : ",CRT.hex())
-
+# 20000079d756bbc5a0d69634141ba4327d547e91da42c84590855ea0308e0ca6baaa16 : value of REJ PUBS
         fullchlo = FullCHLOPacket()
 
 
@@ -216,8 +216,8 @@ class Scapy:
 
         # print('PUBS_Value', string_to_ascii(SessionInstance.get_instance().public_values_bytes))
 
-        associated_data = extract_from_packet(fullchlo, end=14)
-        body = extract_from_packet(fullchlo, start=26)
+        associated_data = extract_from_packet(fullchlo, end=10)
+        body = extract_from_packet(fullchlo, start=22)
 
         message_authentication_hash = FNV128A().generate_hash(associated_data, body)
         fullchlo.setfieldval('Message_Authentication_Hash', string_to_ascii(message_authentication_hash))
@@ -232,8 +232,29 @@ class Scapy:
         ans, unans = sr(p)
         print(ans.show())
 
+        print(bytes(ans[0][1][UDP][Raw])[0])
+        # a = AEADPacketDynamic(packet[0][1][1].payload.load)
+        # a.parse()
+        # print(">>>>>>>> Received packet with MAH: {}".format(a.get_field(AEADFieldNames.MESSAGE_AUTHENTICATION_HASH)))
 
+        # # Start key derixvation
+        # SessionInstance.get_instance().div_nonce = a.get_field(AEADFieldNames.DIVERSIFICATION_NONCE)
+        # SessionInstance.get_instance().message_authentication_hash = a.get_field(AEADFieldNames.MESSAGE_AUTHENTICATION_HASH)
+        # packet_number = a.get_field(AEADFieldNames.PACKET_NUMBER)
+        # SessionInstance.get_instance().packet_number = packet_number
+        # # print("Packet Number {}".format(packet_number))
+        # SessionInstance.get_instance().largest_observed_packet_number = packet_number
+        # SessionInstance.get_instance().associated_data = a.get_associated_data()
+        # # print("Associated Data {}".format(SessionInstance.get_instance().associated_data))
+        # ciphertext = split_at_nth_char(a.get_field(AEADFieldNames.ENCRYPTED_FRAMES))
 
+        # # print("Received peer public value {}".format(SessionInstance.get_instance().peer_public_value))
+        # dhke.generate_keys(SessionInstance.get_instance().peer_public_value,  SessionInstance.get_instance().shlo_received)
+        # # SessionInstance.get_instance().packet_number = packet_number
+
+        # # Process the streams
+        # processor = FramesProcessor(ciphertext)
+        # processor.process()
 
 
         # self.wait_for_signal_or_expiration()
@@ -616,8 +637,9 @@ class Scapy:
         ciphertext = CryptoManager.encrypt(bytes.fromhex(frame_data), packet_number, SessionInstance.get_instance(), self.logger)
 
         a = AEADRequestPacket()
-        a.setfieldval("Public_Flags", 0x18)
-        a.setfieldval('Packet_Number', packet_number)
+        print(packet_number, ciphertext)
+        a.setfieldval("Public_Flags", 0x08)
+        a.setfieldval('Packet_Number', string_to_ascii(str("%02x" % packet_number)))
         a.setfieldval("Message_Authentication_Hash", string_to_ascii(ciphertext[0:24]))
         a.setfieldval('CID', string_to_ascii(SessionInstance.get_instance().connection_id))
 
@@ -627,8 +649,8 @@ class Scapy:
         p = IP(dst=SessionInstance.get_instance().destination_ip) / UDP(dport=DPORT, sport=61250) / a / Raw(load=string_to_ascii(ciphertext[24:]))
         # ans, _ = sr(p, count=3)
         send(p)
-        self.wait_for_signal_or_expiration()
-        self.processed = False
+        # self.wait_for_signal_or_expiration()
+        # self.processed = Falsec
         # self.sniffer.remove_observer(self)
         time.sleep(1)
 
@@ -846,7 +868,8 @@ class Scapy:
 
 s = Scapy()
 s.send(SendInitialCHLOEvent())
-# s.send(SendFullCHLOEvent())
+s.send(CloseConnectionEvent())
+# s.send(ZeroRTTCHLOEvent())
 
 # try:
 #     operations = [(s.send_chlo, False), (s.send_full_chlo, True), (s.send_full_chlo_to_existing_connection, True), (s.send_encrypted_request, True), (s.close_connection, True), (s.reset, False)]

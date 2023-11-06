@@ -17,7 +17,7 @@ class CryptoConnectionManager:
         if endpoint == ConnectionEndpoint.CRYPTO_ORACLE or True:
             print("Sending message ...")
             crypto_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            crypto_socket.connect((SessionInstance.get_instance().destination_ip, 3030))
+            crypto_socket.connect(("localhost", 443))
             crypto_socket.send(msg)
             if expect_answer:
                 # Arbitrary big sized buffer

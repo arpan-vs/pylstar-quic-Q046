@@ -10,6 +10,7 @@ from pylstar.LSTAR import LSTAR
 from pylstar.ActiveKnowledgeBase import ActiveKnowledgeBase
 from pylstar.Letter import Letter
 from pylstar.Word import Word
+from pylstar.eqtests import RandomWalkMethod
 
 
 from ServerKnowledgeBase import QUICServerKnowledgeBase
@@ -26,8 +27,8 @@ def log_fn(log_file, s):
 def main():
 
     input_vocabulary = [
-        "SendInitialCHLOEvent",
-        # "SendFullCHLOEvent",
+        "InitialCHLO",
+        "FullCHLO",
         # "SendGETRequestEvent", 
         # "CloseConnectionEvent", 
         # "SendFullCHLOEvent", 
@@ -36,9 +37,10 @@ def main():
     ]
 
 
-    quicServerBase = QUICServerKnowledgeBase("127.0.0.1", 4242)
+    quicServerBase = QUICServerKnowledgeBase("127.0.0.1", 443)
     try:
-        lstar = LSTAR(input_vocabulary, quicServerBase, max_states = 10)
+        # eqtest = RandomWalkMethod(quicServerBase, input_vocabulary, 10000, 0.7)
+        lstar = LSTAR(input_vocabulary, quicServerBase, max_states = 2)
         quicServer_state_machine = lstar.learn()
     except:
         print("Some Error Occured")

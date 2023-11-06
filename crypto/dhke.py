@@ -71,11 +71,11 @@ class dhke:
         # print(">>>> Info <<<<")
         # print(info.hex())
 
-        logger.info("Shared key {}".format(shared_key.hex()))
+        print("Shared key {}".format(shared_key.hex()))
 
         derived_shared_key = dhke.perform_hkdf(salt, shared_key, info, forward_secure)
 
-        logger.info("Derived shared key {}".format({k: v.hex() for k, v in derived_shared_key.items()}))
+        print("Derived shared key {}".format({k: v.hex() for k, v in derived_shared_key.items()}))
 
         SessionInstance.get_instance().keys = derived_shared_key
         return derived_shared_key

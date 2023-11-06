@@ -63,7 +63,7 @@ class FramesProcessor:
                 'key': SessionInstance.get_instance().keys['key2'].hex()  # other key, used for decryption,.
             }
 
-            logger.info("Requesting decryption for {}".format(request_data))
+            print("Requesting decryption for {}".format(request_data))
 
             try:
                 response = CryptoConnectionManager.send_message(ConnectionEndpoint.CRYPTO_ORACLE,
@@ -177,9 +177,9 @@ class FramesProcessor:
             if processed_by.count('unknown') == len(processed_by):
                 return 'unknown'
             else:
-                logger.info("Complete processed by in FP {}".format(processed_by))
+                print("Complete processed by in FP {}".format(processed_by))
                 p = list(filter(lambda a: a != 'unknown', processed_by))[0]
-                logger.info("Returning in FramesProcessor {}".format(p))
+                print("Returning in FramesProcessor {}".format(p))
                 return p
 
 

@@ -1,17 +1,14 @@
 
 from events import *
 from events.Events import SendFullCHLOEvent, SendInitialCHLOEvent
-from scapy_demo import Scapy
-
 # s = Scapy()
 
 
 def QuicInputMapper(alphabet, s):
-    x = ""
     match alphabet:
-        case "SendInitialCHLOEvent":
+        case "InitialCHLO":
             x = s.send(SendInitialCHLOEvent())
-        case "SendFullCHLOEvent":
+        case "FullCHLO":
             x = s.send(SendFullCHLOEvent())
         case default:
             pass
@@ -19,7 +16,11 @@ def QuicInputMapper(alphabet, s):
 
 
 def QuicOutputMapper(data):
-    match data:
-        case default:
-            pass
-    return 
+    output = ""
+    if data[0] ^ 0x0c == 0:
+        output = "SHLO"
+    elif data[16+10: 16+10+3] == b'REJ':
+        output = "REJ"
+    else:
+        output = "ERROR"
+    return output
