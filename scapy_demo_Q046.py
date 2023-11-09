@@ -164,10 +164,11 @@ class Scapy:
             
         # f.close()
         
-        print("ans is",ans.show())
-        print("unans is",unans.show())
+        # print("ans is",ans.show())
+        # print("unans is",unans.show())
 
-        # packet = bytes(ans[0][1][UDP][Raw])
+        # packet = hex(ans[0][1][UDP][Raw])
+        # print("ans is:",bytes(ans[0][1][UDP][Raw]))
         # packet_type = packet[16+10: 16+10+3+1]
         # STK = packet[16*5+10: 16*5+10+60]
         # SNO = packet[16*9+6: 16*9+6+56]
@@ -179,6 +180,7 @@ class Scapy:
         # SCID = packet[16*35+2: 16*35+2+16]
         # PUBS = packet[16*36+6: 16*36+6+35]
 
+        print(ans)
 
         # SessionInstance.get_instance().peer_public_value = bytes.fromhex(PUBS[3:].hex())
 
@@ -879,7 +881,7 @@ class Scapy:
 
 s = Scapy()
 s.send(SendInitialCHLOEvent())
-# s.send(CloseConnectionEvent())
+s.send(CloseConnectionEvent())
 # s.send(ZeroRTTCHLOEvent())
 
 # try:

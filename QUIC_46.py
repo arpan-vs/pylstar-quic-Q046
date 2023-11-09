@@ -47,11 +47,11 @@ class QUICHeader(Packet):
 
         LEIntField("tag_offset_end_4", 800),
         StrFixedLenField("VER", "VER", 3),
-        ByteField("Xtra_3", 0),
+        ByteField("Xtra_5", 0),
 
         LEIntField("tag_offset_end_5", 804),
         StrFixedLenField("CCS", "CCS", 3),
-        ByteField("Xtra_4", 0),
+        ByteField("Xtra_6", 0),
 
         LEIntField("tag_offset_end_6", 820),
         StrFixedLenField("AEAD", "AEAD", 4),
