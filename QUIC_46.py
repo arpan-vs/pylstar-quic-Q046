@@ -1335,7 +1335,28 @@ class QUICHeader(Packet):
         
         XByteField("Padding1233", 0x00),
         XByteField("Padding1234", 0x00),
+        XByteField("Padding1235", 0x00),
+        XByteField("Padding1236", 0x00),
+        XByteField("Padding1237", 0x00),
+        XByteField("Padding1238", 0x00),
+        XByteField("Padding1239", 0x00),
+        XByteField("Padding1240", 0x00),
+        XByteField("Padding1241", 0x00),
+        XByteField("Padding1242", 0x00),
         
+        XByteField("Padding1243", 0x00),
+        XByteField("Padding1244", 0x00),
+        XByteField("Padding1245", 0x00),
+        XByteField("Padding1246", 0x00),
+        XByteField("Padding1247", 0x00),
+        XByteField("Padding1248", 0x00),
+        XByteField("Padding1249", 0x00),
+        XByteField("Padding1250", 0x00),
+        XByteField("Padding1251", 0x00),
+        XByteField("Padding1252", 0x00),
+        
+        XByteField("Padding1253", 0x00),
+        XByteField("Padding1254", 0x00),
         # Padding Frame Type
         # XByteField("Frame Type 2", 0x00),
 

@@ -1,4 +1,5 @@
 import datetime
+import struct
 import time, os
 import json
 import random
@@ -167,7 +168,17 @@ class Scapy:
         # print("ans is",ans.show())
         # print("unans is",unans.show())
 
-        # packet = hex(ans[0][1][UDP][Raw])
+        packet = bytes(ans[0][1][UDP][Raw])
+        print("Stream Type:",packet[34:38].decode())
+        big=bytearray.fromhex(packet[38:40].hex())
+        big.reverse()
+        str_little = "".join(format(x, "02x") for x in big)
+        no_of_tags=int(str_little)
+        print("No. of Tags:",no_of_tags)
+        tag_name_start_index=42
+        prev_offset=0
+        stk_tag_size=int(packet[46:50].hex(),16)-prev_offset
+        print("Tag Name / Value : ",packet[tag_name_start_index:tag_name_start_index+4].decode(),packet[128:140].hex())
         # print("ans is:",bytes(ans[0][1][UDP][Raw]))
         # packet_type = packet[16+10: 16+10+3+1]
         # STK = packet[16*5+10: 16*5+10+60]
@@ -179,9 +190,9 @@ class Scapy:
         # CRT = packet[16*40+9: 16*40+9+696]
         # SCID = packet[16*35+2: 16*35+2+16]
         # PUBS = packet[16*36+6: 16*36+6+35]
+        # print()
 
-        print(ans)
-
+        # print("final is:",packet[0])
         # SessionInstance.get_instance().peer_public_value = bytes.fromhex(PUBS[3:].hex())
 
         # print("Packet recieved : ",packet_type.decode())
@@ -204,11 +215,11 @@ class Scapy:
 
 
 
-#         fullchlo.setfieldval('CID', string_to_ascii(SessionInstance.get_instance().connection_id))
-#         fullchlo.setfieldval('SCID_Value', SessionInstance.get_instance().server_config_id)
-#         fullchlo.setfieldval('STK_Value', string_to_ascii(STK.hex()))
-#         fullchlo.setfieldval('SNO_Value', string_to_ascii(SNO.hex()))
-#         fullchlo.setfieldval('SCID_Value', string_to_ascii(SCID.hex())) #incomplete
+        # fullchlo.setfieldval('CID', string_to_ascii(SessionInstance.get_instance().connection_id))
+        # fullchlo.setfieldval('SCID_Value', SessionInstance.get_instance().server_config_id)
+        # fullchlo.setfieldval('STK_Value', string_to_ascii(STK.hex()))
+        # fullchlo.setfieldval('SNO_Value', string_to_ascii(SNO.hex()))
+        # fullchlo.setfieldval('SCID_Value', string_to_ascii(SCID.hex())) #incomplete
 
 
 #         epochtime = str(hex(int(time.time())))
