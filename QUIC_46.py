@@ -16,7 +16,7 @@ class QUICHeader(Packet):
         StrFixedLenField("Version", "Q046", 4),
         XByteField("Connection_Id_Length", 0x50),
         StrFixedLenField("CID", string_to_ascii(""), 8),
-        StrFixedLenField("Packet_Number", 1 , 4 ),
+        StrFixedLenField("Packet_Number", string_to_ascii("00000001") , 4 ),
         # Message Authentication Hash, 12 bytes
 
         StrFixedLenField("Message_Authentication_Hash", string_to_ascii("5f67187558566e93f02ce5d0"), 12),

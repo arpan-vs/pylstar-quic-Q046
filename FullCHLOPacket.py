@@ -13,10 +13,12 @@ class FullCHLOPacket(Packet):
     name = "FullCHLO"
 
     fields_desc = [
-        XByteField("Public_Flags", 0x08),
+        XByteField("Public_Flags", 0xe3),
+        StrFixedLenField("Version", "Q046", 4),
+        XByteField("Connection_Id_Length", 0x50),
         StrFixedLenField("CID", string_to_ascii(""), 8),
-        # StrFixedLenField("Version", "Q043", 4),
-        StrFixedLenField("Packet_Number", 1, 1), # LEShortField
+        # StrFixedLenField("Version", "Q046", 4),
+        StrFixedLenField("Packet_Number", string_to_ascii("00000002"), 4), # LEShortField
         # ByteField("Packet_Number", 1), # LEShortField
 
         # Message Authentication Hash, 12 bytes
@@ -663,7 +665,7 @@ class FullCHLOPacket(Packet):
         StrFixedLenField("Server_Name_Indication", "localhost", 9),
         StrFixedLenField("STK_Value", string_to_ascii("f7214fe6649467547b2c4e006d97c716097d05ac737b34f426404fd965e2290677fecb437701364808ec4af796bacea645afd897525ef16f"), 60),
         StrFixedLenField("SNO_Value", string_to_ascii("e4d458e2594b930f6d4f77711215adf9ebe99096c479dbf765f41d28646c4b87a0ec735e63cc4f19b9207d369e36968b2b2071ed"), 56),
-        LEIntField("Version_Value", 0x33343051),
+        LEIntField("Version_Value", 0x36343051),
         StrFixedLenField("CCS_Value", string_to_ascii("01e8816092921ae87eed8086a2158291"), 16),
         StrFixedLenField("NONC_Value", string_to_ascii("5ac349e90091b5556f1a3c52eb57f92c12640e876e26ab2601c02b2a32f54830"), 32),
         StrFixedLenField("AEAD_Value", "AESG", 4),
@@ -1026,14 +1028,14 @@ class FullCHLOPacket(Packet):
 
         XByteField("Padding1211", 0x00),
         XByteField("Padding1212", 0x00),
-        XByteField("Padding1213", 0x00),
-        XByteField("Padding1214", 0x00),
-        XByteField("Padding1215", 0x00),
-        XByteField("Padding1216", 0x00),
-        XByteField("Padding1217", 0x00),
-        XByteField("Padding1218", 0x00),
-        XByteField("Padding1219", 0x00),
-        XByteField("Padding1220", 0x00),
+        # XByteField("Padding1213", 0x00),
+        # XByteField("Padding1214", 0x00),
+        # XByteField("Padding1215", 0x00),
+        # XByteField("Padding1216", 0x00),
+        # XByteField("Padding1217", 0x00),
+        # XByteField("Padding1218", 0x00),
+        # XByteField("Padding1219", 0x00),
+        # XByteField("Padding1220", 0x00),
 
         # XByteField("Padding1221", 0x00),
         # XByteField("Padding1222", 0x00),
