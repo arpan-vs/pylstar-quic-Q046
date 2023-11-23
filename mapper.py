@@ -5,13 +5,12 @@ from events.Events import SendFullCHLOEvent, SendInitialCHLOEvent
 
 
 def QuicInputMapper(alphabet, s):
-    match alphabet:
-        case "InitialCHLO":
-            x = s.send(SendInitialCHLOEvent())
-        case "FullCHLO":
-            x = s.send(SendFullCHLOEvent())
-        case default:
-            pass
+    if alphabet=="InitialCHLO":
+        x = s.send(SendInitialCHLOEvent())
+    elif alphabet=="FullCHLO":
+        x = s.send(SendFullCHLOEvent())
+    else:
+        pass
     return x
 
 
