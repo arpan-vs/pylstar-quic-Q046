@@ -10,7 +10,7 @@ import time
 
 from mapper import *
 
-from gquic_43 import Scapy
+from scapy_demo_Q046 import Scapy
 from PacketNumberInstance import PacketNumberInstance
 from util.SessionInstance import SessionInstance
 
@@ -37,7 +37,8 @@ class QUICServerKnowledgeBase(ActiveKnowledgeBase):
 
     def submit_word(self, word):
 
-        self._logger.debug("Submiting word '{}' to the network target".format(word))
+        self._logger.debug(
+            "Submiting word '{}' to the network target".format(word))
 
         output_letters = []
 
@@ -48,10 +49,12 @@ class QUICServerKnowledgeBase(ActiveKnowledgeBase):
         # s.settimeout(self.timeout)
         # s.connect((self.target_host, self.target_port))
         try:
-            output_letters = [self._submit_letter(s, letter) for letter in word.letters]
+            output_letters = [self._submit_letter(
+                s, letter) for letter in word.letters]
         finally:
             PacketNumberInstance.get_instance().reset()
-            SessionInstance.get_instance().connection_id = str(format(random.getrandbits(64), 'x').zfill(16))
+            SessionInstance.get_instance().connection_id = str(
+                format(random.getrandbits(64), 'x').zfill(16))
             print("-"*30)
 
         return Word(letters=output_letters)
@@ -62,13 +65,12 @@ class QUICServerKnowledgeBase(ActiveKnowledgeBase):
             to_send = ''.join([symbol for symbol in letter.symbols])
             processed = QuicInputMapper(to_send, s)
             output = QuicOutputMapper(processed)
-            print("to_send : ",to_send, "output : ",output)
+            print("to_send : ", to_send, "output : ", output)
             output_letter = Letter(output)
         except Exception as e:
             self._logger.error(e)
 
         return output_letter
-
 
     # def _send_and_receive(self, s, data):
     #     print('input:',data)
