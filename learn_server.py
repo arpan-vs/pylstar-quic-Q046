@@ -37,7 +37,10 @@ def main():
     ]
 
 
-    quicServerBase = QUICServerKnowledgeBase("127.0.0.1", 443)
+    if sys.argv[1]:
+        quicServerBase = QUICServerKnowledgeBase("127.0.0.1", 443,timeout=int(sys.argv[1]))
+    else:
+        quicServerBase = QUICServerKnowledgeBase("127.0.0.1", 443)
     try:
         # eqtest = RandomWalkMethod(quicServerBase, input_vocabulary, 10000, 0.7)
         lstar = LSTAR(input_vocabulary, quicServerBase, max_states = 2)
@@ -48,7 +51,13 @@ def main():
         
     dot_code = quicServer_state_machine.build_dot_code()
 
-    output_file = "quic_server_infer.dot"
+    output_file = "quic_server_infer_Q046.dot"
+
+    try:
+        if sys.argv[1]:
+            output_file = f"quic_server_infer_Q046_timeout_{int(sys.argv[1])}.dot"
+    except:
+        pass
 
     with open(output_file, "w") as fd:
         fd.write(dot_code)
