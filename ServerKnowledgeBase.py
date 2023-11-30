@@ -55,7 +55,7 @@ class QUICServerKnowledgeBase(ActiveKnowledgeBase):
         finally:
 
             del s
-            time.sleep(self.timeout)
+            time.sleep(10)
             self._i+=1
             PacketNumberInstance.get_instance().reset()
             SessionInstance.get_instance().connection_id = str(format(random.getrandbits(64), 'x').zfill(16))
@@ -70,7 +70,7 @@ class QUICServerKnowledgeBase(ActiveKnowledgeBase):
         try:
             to_send = ''.join([symbol for symbol in letter.symbols])
             processed = QuicInputMapper(to_send, s)
-            # time.sleep(1)
+            # time.sleep(10)
             # print(processed)
             output = QuicOutputMapper(processed)
             # print([to_send+ "/"+output])

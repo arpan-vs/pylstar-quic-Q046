@@ -5,7 +5,7 @@ import os
 
 output_name="quic_server_infer_Q046_timeout"
 
-timeout=[8]
+timeout=[10]
 
 for val in timeout:
     print("\n\ncurrent dir:",os.getcwd())

@@ -179,8 +179,9 @@ class Scapy:
 
         # print("ans is",ans.show())
         # print("unans is",unans.show())
-
+        # try:
         packet = bytes(ans[0][1][UDP][Raw])
+        print(packet)
         packet_type = packet[34:37].decode()
         # print("Packet Type:",)
         # big=bytearray.fromhex(packet[38:40].hex())
@@ -194,13 +195,13 @@ class Scapy:
         # packet[tag_name_start_index+(no_of_tags*8):tag_name_start_index+(no_of_tags*8)+stk_tag_size].hex()
         if packet_type == "REJ":
             self.server_adress_token = packet[tag_name_start_index +
-                                              8*7:tag_name_start_index+8*7+60]
+                                            8*7:tag_name_start_index+8*7+60]
             self.server_nonce = packet[tag_name_start_index +
-                                       8*7+60:tag_name_start_index+8*7+60+56]
+                                    8*7+60:tag_name_start_index+8*7+60+56]
             self.server_config_id = packet[tag_name_start_index+8*7+60+56+256+8+16 +
-                                               8+8+8+8+8+8+24+4:tag_name_start_index+8*7+60+56+256+8+16+8+8+8+8+8+8+24+4+16]
+                                            8+8+8+8+8+8+24+4:tag_name_start_index+8*7+60+56+256+8+16+8+8+8+8+8+8+24+4+16]
             SCFG = packet[tag_name_start_index+8*7 +
-                  60+56+256:tag_name_start_index+8*7+60+56+256+175]
+                60+56+256:tag_name_start_index+8*7+60+56+256+175]
             SessionInstance.get_instance().server_nonce = self.server_nonce.hex()
             SessionInstance.get_instance().source_address_token = self.server_adress_token
             SessionInstance.get_instance().server_config_id=self.server_config_id.hex()
@@ -213,10 +214,12 @@ class Scapy:
             print("\n***SCFG value:***", SCFG.hex())
             # print("CERT value:",SessionInstance.get_instance().cert.hex())
         PUBS = packet[tag_name_start_index+8*7+60+56+256+8+16+8+8+8+8+8+8+24 +
-                      4+16+4:tag_name_start_index+8*7+60+56+256+8+16+8+8+8+8+8+8+24+4+16+4+35]
+                    4+16+4:tag_name_start_index+8*7+60+56+256+8+16+8+8+8+8+8+8+24+4+16+4+35]
         SessionInstance.get_instance().peer_public_value = bytes.fromhex(PUBS[3:].hex())
         print("\n***PUBS value:***", PUBS.hex())
         return packet
+        # except:
+        #     return b"EXP"
         # SessionInstance.get_instance().peer_public_value = bytes.fromhex(PUBS[3:].hex())
         # print(packet[98:115].hex())
         # print("ans is:",bytes(ans[0][1][UDP][Raw]))
@@ -726,7 +729,7 @@ class Scapy:
         p = IP(dst=SessionInstance.get_instance().destination_ip) / \
                 UDP(dport=DPORT, sport=61250) / fullchlo
 
-        ans, unans = sr(p)
+        ans, unans = sr(p, timeout=self.TIMEOUT)
         try:
             packet = bytes(ans[0][1][UDP][Raw])
 
@@ -1003,6 +1006,7 @@ class Scapy:
 
 s = Scapy()
 s.send(SendInitialCHLOEvent())
+# time.sleep(10)
 s.send(SendFullCHLOEvent())
 # s.send(SendFullCHLOEvent())
 # s.send(ZeroRTTCHLOEvent())
