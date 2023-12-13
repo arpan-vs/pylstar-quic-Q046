@@ -20,13 +20,9 @@ class dhke:
         """
         private_key = PrivateKey()
         my_public_key = PublicKey((private_key.get_public()).public)
-        # private_key = PrivateKey()
-        # my_public_key = PublicKey(os.urandom(32))
         SessionInstance.get_instance().public_value = my_public_key
         SessionInstance.get_instance().public_values_bytes = my_public_key.public.hex()
-        # print("My public key {}".format(SessionInstance.get_instance().public_values_bytes))
         SessionInstance.get_instance().private_value = private_key.private
-        print("\n*** Public Key:***",my_public_key.public.hex())
 
     @staticmethod
     def generate_keys(peer_public_value: bytes, forward_secure=False, logger=None):
@@ -41,47 +37,27 @@ class dhke:
         """
         # 1. Load my key
         private_key = PrivateKey(secret=SessionInstance.get_instance().private_value)
-        print("\n*** Private Key***",private_key.private.hex())
 
         # 2. compute the shared secret
         if len(peer_public_value) != 32:
             raise Exception("Invalid length of peer public value, should be 32 bytes received {} bytes".format(len(peer_public_value)))
 
         shared_key = private_key.do_exchange(PublicKey(peer_public_value))
-        print("\n*** Shared key:***",shared_key.hex())
 
         # 3. Apply the kdf
         info = dhke.generate_info(forward_secure)
-        print("\n***context:***",info.hex())
         salt = bytes.fromhex(SessionInstance.get_instance().client_nonce) # Fixed client nonce
-        # print("Forward secure? {}".format(forward_secure))
-        # print("Zero rtt mode? {}".format(SessionInstance.get_instance().zero_rtt))
-        # print("Using dynamic nonce? {}".format(SessionInstance.get_instance().zero_rtt or forward_secure))
         if forward_secure or SessionInstance.get_instance().zero_rtt:
             salt += bytes.fromhex(SessionInstance.get_instance().server_nonce)  # Appended with dynamic server nonce
-            # print("Received server nonce {}".format(SessionInstance.get_instance().server_nonce))
         else:
-            print("server nonce in dhke:",SessionInstance.get_instance().server_nonce)
             salt = salt + bytes.fromhex(SessionInstance.get_instance().server_nonce)
-            # salt += bytes.fromhex("e4d458e2594b930f6d4f77711215adf9ebe99096c479dbf765f41d28646c4b87a0ec735e63cc4f19b9207d369e36968b2b2071ed") # Is it fixed?
-        print("\n*** Salt:***",salt.hex())
-        # print("Connection ID")
-        # print(SessionInstance.get_instance().connection_id)
-        #
-        # print(">>>> My Salt <<<<")
-        # print(salt.hex())
-        #
-        # print(">>>> Shared Key <<<<")
-        # print(shared_key.hex())
-        #
-        # print(">>>> Info <<<<")
-        # print(info.hex())
-
-        # print("Shared key {}".format(shared_key.hex()))
 
         derived_shared_key = dhke.perform_hkdf(salt, shared_key, info, forward_secure)
 
-        print("\n***Derived shared key {}***".format({k: v.hex() for k, v in derived_shared_key.items()}))
+        if forward_secure:
+            SessionInstance.get_instance().final_keys = derived_shared_key
+        else:
+            SessionInstance.get_instance().initial_keys = derived_shared_key
 
         SessionInstance.get_instance().keys = derived_shared_key
         return derived_shared_key
@@ -95,7 +71,6 @@ class dhke:
             info=info,
             backend=default_backend()
         ).derive(shared_key)
-        # print("Derived shared key for AES: ")
 
         keys = {
             'key1': derived_key[:16],   # my key
@@ -103,16 +78,6 @@ class dhke:
             'iv1': derived_key[32:32+4],# my iv
             'iv2': derived_key[32+4:]   # other iv
         }
-
-        # if it is not forward secure we need to diversify the keys
-        # if not forward_secure:
-        #     try:
-        #         diversified = dhke.diversify(keys['key2'], keys['iv2'], bytes.fromhex(SessionInstance.get_instance().div_nonce))
-        #         keys['key2'] = diversified['diversified_key']
-        #         keys['iv2'] = diversified['diversified_iv']
-        #     except ValueError:
-        #         print("Error in div nonce {}".format(SessionInstance.get_instance().div_nonce))
-
         return keys
 
     @staticmethod
@@ -136,14 +101,11 @@ class dhke:
     def print_like_go(info):
         info_as_string = "".join(map(chr, info))
         info_quic_style = [ord(c) for c in info_as_string]
-        # print(info_quic_style)
         return info_quic_style
 
     @staticmethod
     def generate_info(forward_secure=True):
         info = b""
-        # Fixed label
-        print("\n***forward secure***:",forward_secure)
         if forward_secure:
             info += "QUIC forward secure key expansion".encode('utf-8')
         else:
@@ -168,26 +130,19 @@ class dhke:
         input = input.replace("[", "{")
         input = input.replace("]", "}")
         input = input.replace(" ", ", ")
-        # print(input)
 
     @staticmethod
     def compare_infos(own_info, quic_info):
         # Transform quic string to array
         quic_info_as_array = quic_info.split(" ")
-        # print(quic_info_as_array)
-
-        # print("Length of my info {}, Lenght of QUIC info {}".format(len(own_info), len(quic_info_as_array)))
-        # print("Lengths are equal? {}".format(len(own_info) == len(quic_info_as_array)))
 
         equal = True
         for own_idx, own_char in enumerate(own_info):
             for quic_idx, quic_char in enumerate(quic_info_as_array):
                 if own_idx == quic_idx:
                     if not str(own_char) == quic_char:
-                        # print("At my array at place {} at I have {} but QUIC has {} at place {}".format(own_idx, own_char, quic_char, quic_idx))
                         equal = False
                         break
-        # print(equal)
 
     @staticmethod
     def quic_go_byte_array_print_to_python_array(input):
@@ -200,5 +155,4 @@ class dhke:
         input = input.replace("]", "")
         output = input.split(" ")
         output = ["%02x" % int(x) for x in output]
-        # print("".join(output))
         return output

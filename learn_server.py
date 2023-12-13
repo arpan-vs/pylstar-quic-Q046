@@ -29,6 +29,8 @@ def main():
     input_vocabulary = [
         "InitialCHLO",
         "FullCHLO",
+        "GET",
+        "CLOSE"
         # "SendGETRequestEvent", 
         # "CloseConnectionEvent", 
         # "SendFullCHLOEvent", 
@@ -43,7 +45,7 @@ def main():
         quicServerBase = QUICServerKnowledgeBase("127.0.0.1", 443)
     try:
         # eqtest = RandomWalkMethod(quicServerBase, input_vocabulary, 10000, 0.7)
-        lstar = LSTAR(input_vocabulary, quicServerBase, max_states = 2)
+        lstar = LSTAR(input_vocabulary, quicServerBase, max_states = 5)
         quicServer_state_machine = lstar.learn()
     except:
         print("Some Error Occured")
@@ -51,7 +53,7 @@ def main():
         
     dot_code = quicServer_state_machine.build_dot_code()
 
-    output_file = "quic_server_infer_Q046_inference.dot"
+    output_file = "quic_server_infer_Q046_inference_FINAL_3.dot"
 
     try:
         if len(sys.argv)>1:

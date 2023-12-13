@@ -1,6 +1,6 @@
 
 from events import *
-from events.Events import SendFullCHLOEvent, SendInitialCHLOEvent
+from events.Events import SendFullCHLOEvent, SendInitialCHLOEvent, SendGETRequestEvent, CloseConnectionEvent
 # s = Scapy()
 
 
@@ -9,8 +9,10 @@ def QuicInputMapper(alphabet, s):
         x = s.send(SendInitialCHLOEvent())
     elif alphabet=="FullCHLO":
         x = s.send(SendFullCHLOEvent())
-    #elif alphabet=="ZERO-RTT":
-     #   x = s.send(ZeroRTTCHLOEvent())
+    elif alphabet=="GET":
+        x = s.send(SendGETRequestEvent())
+    elif alphabet=="CLOSE":
+        x = s.send(CloseConnectionEvent())
     else:
         pass
     return x
@@ -18,7 +20,6 @@ def QuicInputMapper(alphabet, s):
 
 def QuicOutputMapper(data):
     output = ""
-    print("\n***data in mapper***",data[6:10])
     if data == b"EXP":
         output = "EXP"
     elif data[6:10] == b"SHLO":
@@ -27,13 +28,16 @@ def QuicOutputMapper(data):
         output = "REJ"
     elif data[34+8: 34+8+3] == b'REJ':
         output = "REJ"
-    else:
+    elif data == b"html":
+        output = "HTTP"
+    elif data == b"HTML":
+        output = "HTTP"
+    elif data == b"PRST":
+        output = "PRST"
+    elif data == b"closed":
+        output = "CLOSED"
+    elif data == b"ERROR":
         output = "ERROR"
+    else:
+         return "UNKNOWN"
     return output
-    # if data[0] ^ 0x0c == 0:
-    #     output = "SHLO"
-    # elif data[16+10: 16+10+3] == b'REJ':
-    #     output = "REJ"
-    # else:
-    #     output = "ERROR"
-    # return output

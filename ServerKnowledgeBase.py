@@ -55,7 +55,7 @@ class QUICServerKnowledgeBase(ActiveKnowledgeBase):
         finally:
 
             del s
-            time.sleep(10)
+            time.sleep(20)
             self._i+=1
             PacketNumberInstance.get_instance().reset()
             SessionInstance.get_instance().connection_id = str(format(random.getrandbits(64), 'x').zfill(16))
