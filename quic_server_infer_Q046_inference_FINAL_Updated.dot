@@ -1,0 +1,32 @@
+digraph "Automata" {
+"0" [shape=doubleoctagon, style=filled, fillcolor=white, URL="0"];
+"1" [shape=ellipse, style=filled, fillcolor=white, URL="1"];
+"2" [shape=ellipse, style=filled, fillcolor=white, URL="2"];
+"5" [shape=ellipse, style=filled, fillcolor=white, URL="5"];
+"3" [shape=ellipse, style=filled, fillcolor=white, URL="3"];
+"4" [shape=ellipse, style=filled, fillcolor=white, URL="4"];
+"0" -> "1" [fontsize=5, label="InitialCHLO / REJ", URL="t0"];
+"0" -> "0" [fontsize=5, label="FullCHLO / ERROR", URL="t1"];
+"0" -> "0" [fontsize=5, label="GET / EXP", URL="t2"];
+"0" -> "0" [fontsize=5, label="CLOSE / EXP", URL="t3"];
+"1" -> "1" [fontsize=5, label="InitialCHLO / REJ", URL="t4"];
+"1" -> "2" [fontsize=5, label="FullCHLO / SHLO", URL="t5"];
+"1" -> "1" [fontsize=5, label="GET / ERROR", URL="t6"];
+"1" -> "1" [fontsize=5, label="CLOSE / ERROR", URL="t7"];
+"2" -> "1" [fontsize=5, label="InitialCHLO / REJ", URL="t8"];
+"2" -> "1" [fontsize=5, label="FullCHLO / SHLO", URL="t9"];
+"2" -> "3" [fontsize=5, label="GET / HTTP", URL="t10"];
+"2" -> "5" [fontsize=5, label="CLOSE / CLOSED", URL="t11"];
+"5" -> "1" [fontsize=5, label="InitialCHLO / REJ", URL="t20"];
+"5" -> "5" [fontsize=5, label="FullCHLO / EXP", URL="t21"];
+"5" -> "5" [fontsize=5, label="GET / EXP", URL="t22"];
+"5" -> "5" [fontsize=5, label="CLOSE / EXP", URL="t23"];
+"3" -> "4" [fontsize=5, label="InitialCHLO / REJ", URL="t12"];
+"3" -> "3" [fontsize=5, label="FullCHLO / ERROR", URL="t13"];
+"3" -> "3" [fontsize=5, label="GET / ERROR", URL="t14"];
+"3" -> "5" [fontsize=5, label="CLOSE / CLOSED", URL="t15"];
+"4" -> "1" [fontsize=5, label="InitialCHLO / REJ", URL="t16"];
+"4" -> "2" [fontsize=5, label="FullCHLO / SHLO", URL="t17"];
+"4" -> "4" [fontsize=5, label="GET / HTTP", URL="t18"];
+"4" -> "4" [fontsize=5, label="CLOSE / ERROR", URL="t19"];
+}

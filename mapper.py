@@ -32,12 +32,8 @@ def QuicOutputMapper(data):
         output = "HTTP"
     elif data == b"HTML":
         output = "HTTP"
-    elif data == b"PRST":
-        output = "PRST"
     elif data == b"closed":
         output = "CLOSED"
-    elif data == b"ERROR":
-        output = "ERROR"
     else:
-         return "UNKNOWN"
+        output = "ERROR"
     return output

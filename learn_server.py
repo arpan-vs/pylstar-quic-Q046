@@ -45,15 +45,17 @@ def main():
         quicServerBase = QUICServerKnowledgeBase("127.0.0.1", 443)
     try:
         # eqtest = RandomWalkMethod(quicServerBase, input_vocabulary, 10000, 0.7)
-        lstar = LSTAR(input_vocabulary, quicServerBase, max_states = 5)
+        lstar = LSTAR(input_vocabulary, quicServerBase, max_states = 8)
+        start=time.time()
         quicServer_state_machine = lstar.learn()
+        end=time.time()
     except:
         print("Some Error Occured")
         exit()
         
     dot_code = quicServer_state_machine.build_dot_code()
 
-    output_file = "quic_server_infer_Q046_inference_FINAL_3.dot"
+    output_file = "quic_server_infer_Q046_inference_FINAL_Updated.dot"
 
     try:
         if len(sys.argv)>1:
@@ -66,7 +68,7 @@ def main():
 
     print("==> QUIC machine Automata dumped in {}".format(output_file))
     print("Knowledge base stats: {}".format(quicServerBase.stats))
-
+    print("Execution time(mins):",(end-start)/60)
 
 if __name__ == "__main__":
     main()
