@@ -1,0 +1,43 @@
+digraph "Automata" {
+"0" [shape=doubleoctagon, style=filled, fillcolor=white, URL="0"];
+"1" [shape=ellipse, style=filled, fillcolor=white, URL="1"];
+"2" [shape=ellipse, style=filled, fillcolor=white, URL="2"];
+"4" [shape=ellipse, style=filled, fillcolor=white, URL="4"];
+"3" [shape=ellipse, style=filled, fillcolor=white, URL="3"];
+"0" -> "1" [fontsize=5, label="InitialCHLO / REJ", URL="t0"];
+"0" -> "0" [fontsize=5, label="FullCHLO / EXP", URL="t1"];
+"0" -> "0" [fontsize=5, label="GET / EXP", URL="t2"];
+"0" -> "1" [fontsize=5, label="ZeroRTT / REJ", URL="t3"];
+"0" -> "0" [fontsize=5, label="CLOSE / EXP", URL="t4"];
+"1" -> "1" [fontsize=5, label="InitialCHLO / REJ", URL="t5"];
+"1" -> "2" [fontsize=5, label="FullCHLO / SHLO", URL="t6"];
+"1" -> "1" [fontsize=5, label="GET / EXP", URL="t7"];
+"1" -> "2" [fontsize=5, label="ZeroRTT / SHLO", URL="t8"];
+"1" -> "1" [fontsize=5, label="CLOSE / EXP", URL="t9"];
+"2" -> "1" [fontsize=5, label="InitialCHLO / REJ", URL="t10"];
+"2" -> "2" [fontsize=5, label="FullCHLO / EXP", URL="t11"];
+"2" -> "3" [fontsize=5, label="GET / HTTP", URL="t12"];
+"2" -> "2" [fontsize=5, label="ZeroRTT / SHLO", URL="t13"];
+"2" -> "4" [fontsize=5, label="CLOSE / CLOSED", URL="t14"];
+"4" -> "1" [fontsize=5, label="InitialCHLO / REJ", URL="t20"];
+"4" -> "4" [fontsize=5, label="FullCHLO / EXP", URL="t21"];
+"4" -> "4" [fontsize=5, label="GET / EXP", URL="t22"];
+"4" -> "2" [fontsize=5, label="ZeroRTT / SHLO", URL="t23"];
+"4" -> "4" [fontsize=5, label="CLOSE / EXP", URL="t24"];
+"3" -> "1" [fontsize=5, label="InitialCHLO / REJ", URL="t15"];
+"3" -> "3" [fontsize=5, label="FullCHLO / EXP", URL="t16"];
+"3" -> "3" [fontsize=5, label="GET / ERROR", URL="t17"];
+"3" -> "2" [fontsize=5, label="ZeroRTT / SHLO", URL="t18"];
+"3" -> "4" [fontsize=5, label="CLOSE / CLOSED", URL="t19"];
+}
+
+
+==> QUIC machine Automata dumped in learn_46.dot
+
+Knowledge base stats: 
+	- nb query= 1220
+	- nb submited query= 246
+	- nb letter= 3044
+	- nb submited letter= 913
+
+==> Taken Time:136.8296661376953

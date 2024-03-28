@@ -18,14 +18,20 @@ class dhke:
         Sets up my part for the DHKE
         :return:
         """
+        # private_key = PrivateKey(secret=bytes.fromhex("52066b56cd9006095d82210d21a8a6481dd8111ccd83e1852dee7bc9a4362f5c"))
+        # private_key = PrivateKey(secret=bytes.fromhex("78E0DACE61981ECEC3F7E164AC29407C7EE0AB515AB3F9B51C3E8B58050EE646"))
+        # my_public_key = PublicKey(bytes.fromhex("9267f763f7aacc047ffad175142a0924bf0b64f38b2e7acf93517a1ba045cd75"))
+        # my_public_key = PublicKey(bytes.fromhex("96D49F2CE98F31F053DCB6DFE729669385E5FD99D5AA36615E1A9AD57C1B090C"))
         private_key = PrivateKey()
         my_public_key = PublicKey((private_key.get_public()).public)
         SessionInstance.get_instance().public_value = my_public_key
         SessionInstance.get_instance().public_values_bytes = my_public_key.public.hex()
+        # print("My public key {}".format(SessionInstance.get_instance().public_values_bytes))
         SessionInstance.get_instance().private_value = private_key.private
+        # print("private key:",private_key)
 
     @staticmethod
-    def generate_keys(peer_public_value: bytes, forward_secure=False, logger=None):
+    def generate_keys(peer_public_value: bytes, forward_secure=False, zerortt=False, cert="litespeed", logger=None):
         """
         Method that implements Diffie Hellman with Curve25519
         Receives the public value and chooses a secret value such that it is able
@@ -37,29 +43,52 @@ class dhke:
         """
         # 1. Load my key
         private_key = PrivateKey(secret=SessionInstance.get_instance().private_value)
+        # private_key = PrivateKey(secret=bytes.fromhex("78E0DACE61981ECEC3F7E164AC29407C7EE0AB515AB3F9B51C3E8B58050EE646"))
 
         # 2. compute the shared secret
         if len(peer_public_value) != 32:
             raise Exception("Invalid length of peer public value, should be 32 bytes received {} bytes".format(len(peer_public_value)))
 
         shared_key = private_key.do_exchange(PublicKey(peer_public_value))
-
+        # print("shared key:",shared_key)
         # 3. Apply the kdf
-        info = dhke.generate_info(forward_secure)
+        info = dhke.generate_info(forward_secure, cert)
+        # print("info:",info)
+        # print("info:",info.hex())
         salt = bytes.fromhex(SessionInstance.get_instance().client_nonce) # Fixed client nonce
-        if forward_secure or SessionInstance.get_instance().zero_rtt:
-            salt += bytes.fromhex(SessionInstance.get_instance().server_nonce)  # Appended with dynamic server nonce
-        else:
-            salt = salt + bytes.fromhex(SessionInstance.get_instance().server_nonce)
+        # salt = salt + bytes.fromhex(SessionInstance.get_instance().server_nonce)  # Appended with dynamic server nonce
+        # print("Forward secure? {}".format(forward_secure))
+        # print("Zero rtt mode? {}".format(SessionInstance.get_instance().zero_rtt))
+        # print("Using dynamic nonce? {}".format(SessionInstance.get_instance().zero_rtt or forward_secure))
+        if forward_secure:
+            salt = salt + bytes.fromhex(SessionInstance.get_instance().server_nonce_final)
+        elif zerortt:
+            pass
+        else:            
+            salt = salt + bytes.fromhex(SessionInstance.get_instance().server_nonce_initial)  # Appended with dynamic server nonce
+            # salt += bytes.fromhex("e4d458e2594b930f6d4f77711215adf9ebe99096c479dbf765f41d28646c4b87a0ec735e63cc4f19b9207d369e36968b2b2071ed") # Is it fixed?
+        # print("salt:", salt.hex())
 
+        # print("Connection ID")
+        # print(SessionInstance.get_instance().connection_id)
+        #
+        # print(">>>> Shared Key <<<<")
+        # print(shared_key.hex())
+        # #
+        # #
+        # print(">>>> Info <<<<")
+        # print(info.hex())
+        # print(">>>> My Salt <<<<")
+        # print(salt.hex())
+
+        # print("Shared key {}".format(shared_key.hex()))
         derived_shared_key = dhke.perform_hkdf(salt, shared_key, info, forward_secure)
 
+        # print("Derived shared key {}".format({k: v.hex() for k, v in derived_shared_key.items()}))
         if forward_secure:
             SessionInstance.get_instance().final_keys = derived_shared_key
         else:
             SessionInstance.get_instance().initial_keys = derived_shared_key
-
-        SessionInstance.get_instance().keys = derived_shared_key
         return derived_shared_key
 
     @staticmethod
@@ -71,6 +100,7 @@ class dhke:
             info=info,
             backend=default_backend()
         ).derive(shared_key)
+        # print("Derived shared key for AES: ")
 
         keys = {
             'key1': derived_key[:16],   # my key
@@ -78,6 +108,16 @@ class dhke:
             'iv1': derived_key[32:32+4],# my iv
             'iv2': derived_key[32+4:]   # other iv
         }
+
+        # if it is not forward secure we need to diversify the keys
+        # if not forward_secure:
+        #     try:
+        #         diversified = dhke.diversify(keys['key2'], keys['iv2'], bytes.fromhex(SessionInstance.get_instance().div_nonce))
+        #         keys['key2'] = diversified['diversified_key']
+        #         keys['iv2'] = diversified['diversified_iv']
+        #     except ValueError:
+        #         print("Error in div nonce {}".format(SessionInstance.get_instance().div_nonce))
+
         return keys
 
     @staticmethod
@@ -101,18 +141,20 @@ class dhke:
     def print_like_go(info):
         info_as_string = "".join(map(chr, info))
         info_quic_style = [ord(c) for c in info_as_string]
+        # print(info_quic_style)
         return info_quic_style
 
     @staticmethod
-    def generate_info(forward_secure=True):
+    def generate_info(forward_secure=False, cert="litespeed"):
         info = b""
+        # Fixed label
         if forward_secure:
             info += "QUIC forward secure key expansion".encode('utf-8')
         else:
             info += "QUIC key expansion".encode('utf-8')
         info += b"\x00"
         try:
-            info += bytes.fromhex(SessionInstance.get_instance().connection_id)
+            info += bytes.fromhex(str(SessionInstance.get_instance().connection_id))
         except ValueError:
             print("Error in connection id? {}".format(SessionInstance.get_instance().connection_id))
             return
@@ -121,7 +163,16 @@ class dhke:
 
         info += bytes.fromhex(SessionInstance.get_instance().scfg)
 
-        info += bytes.fromhex(SessionInstance.get_instance().cert)
+        # info += bytes.fromhex(SessionInstance.get_instance().cert)
+
+        if cert == "litespeed":
+            info += bytes.fromhex(SessionInstance.get_instance().cert_litespeed)
+        elif cert == "localhost":
+            # print("HELLO")
+            info += bytes.fromhex(SessionInstance.get_instance().cert_localhost)
+        else:
+            info += bytes.fromhex(SessionInstance.get_instance().cert_litespeed)
+
 
         return info
 
@@ -130,19 +181,26 @@ class dhke:
         input = input.replace("[", "{")
         input = input.replace("]", "}")
         input = input.replace(" ", ", ")
+        # print(input)
 
     @staticmethod
     def compare_infos(own_info, quic_info):
         # Transform quic string to array
         quic_info_as_array = quic_info.split(" ")
+        # print(quic_info_as_array)
+
+        # print("Length of my info {}, Lenght of QUIC info {}".format(len(own_info), len(quic_info_as_array)))
+        # print("Lengths are equal? {}".format(len(own_info) == len(quic_info_as_array)))
 
         equal = True
         for own_idx, own_char in enumerate(own_info):
             for quic_idx, quic_char in enumerate(quic_info_as_array):
                 if own_idx == quic_idx:
                     if not str(own_char) == quic_char:
+                        # print("At my array at place {} at I have {} but QUIC has {} at place {}".format(own_idx, own_char, quic_char, quic_idx))
                         equal = False
                         break
+        # print(equal)
 
     @staticmethod
     def quic_go_byte_array_print_to_python_array(input):
@@ -155,4 +213,5 @@ class dhke:
         input = input.replace("]", "")
         output = input.split(" ")
         output = ["%02x" % int(x) for x in output]
+        # print("".join(output))
         return output

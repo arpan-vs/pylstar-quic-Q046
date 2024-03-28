@@ -1,17 +1,17 @@
 from scapy.packet import Packet
 from scapy.fields import *
 
-from XStrFixedLenField import XStrFixedLenField
 from util.string_to_ascii import string_to_ascii
 
 
 class ACKPacket(Packet):
     name = "ACKPacket"
     fields_desc = [
-        XByteField("Public_Flags", 0x19),
+        XByteField("Public_Flags", 0xe3),
+        StrFixedLenField("Version", "Q046", 4),
+        XByteField("Connection_Id_Length", 0x50),
         StrFixedLenField("CID", string_to_ascii(""), 8),
-        StrFixedLenField("Version", "Q039", 4),
-        LEShortField("Packet_Number", 512),
+        StrFixedLenField("Packet_Number", string_to_ascii("00000001") , 4 ),
 
         # Message authentication hash
         StrFixedLenField("Message_Authentication_Hash", string_to_ascii(""), 12),

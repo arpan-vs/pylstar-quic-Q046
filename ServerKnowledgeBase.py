@@ -9,21 +9,19 @@ import socket
 import time
 
 from mapper import *
-
-from scapy_demo_Q046 import Scapy
-# from gquic_43_litespeed import Scapy
 from PacketNumberInstance import PacketNumberInstance
 from util.SessionInstance import SessionInstance
+
 
 # s = Scapy()
 
 class QUICServerKnowledgeBase(ActiveKnowledgeBase):
-    def __init__(self, target_host, target_port, timeout=5):
+    def __init__(self, server_name, server, timeout=5):
         super(QUICServerKnowledgeBase, self).__init__()
         self._i = 1
-        self.target_host = target_host
-        self.target_port = target_port
         self.timeout = timeout
+        self.server_name = server_name
+        self.server = server
 
     def start(self):
         pass
@@ -39,12 +37,24 @@ class QUICServerKnowledgeBase(ActiveKnowledgeBase):
 
     def submit_word(self, word):
 
+        if self.server==1:
+            from socket_gquic_46 import Scapy
+        else:
+            pass
+            # from socket_gquic_43_litespeed import Scapy
+
         self._logger.debug("Submiting word '{}' to the network target".format(word))
 
         output_letters = []
 
+        print("-"*100)
+        print("query : ",self._i)
+        print("-"*100)
         # s = socket.socket()
-        s = Scapy()
+        if self.server==1:
+            s = Scapy("localhost")
+        else:
+            s = Scapy(self.server_name)
         # # Reuse the connection
         # s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         # s.settimeout(self.timeout)
@@ -52,16 +62,15 @@ class QUICServerKnowledgeBase(ActiveKnowledgeBase):
         try:
             output_letters = [self._submit_letter(s, letter) for letter in word.letters]
             print(word.letters, output_letters)
+        except:
+            pass
         finally:
-
+            # s.send(CloseConnectionEvent())
             del s
-            time.sleep(10)
+            # time.sleep(2)
             self._i+=1
             PacketNumberInstance.get_instance().reset()
-            SessionInstance.get_instance().connection_id = str(format(random.getrandbits(64), 'x').zfill(16))
-            print("-"*100)
-            print("query : ",self._i)
-            print("-"*100)
+            SessionInstance.reset()
 
         return Word(letters=output_letters)
 
@@ -69,9 +78,8 @@ class QUICServerKnowledgeBase(ActiveKnowledgeBase):
         output_letter = EmptyLetter()
         try:
             to_send = ''.join([symbol for symbol in letter.symbols])
-            time.sleep(0.1)
             processed = QuicInputMapper(to_send, s)
-            # time.sleep(10)
+            # time.sleep(0.2)
             # print(processed)
             output = QuicOutputMapper(processed)
             # print([to_send+ "/"+output])
