@@ -49,17 +49,17 @@ def main():
         "InitialCHLO",
         "FullCHLO",
         "GET",
-        # "ZeroRTT",
+        "ZeroRTT",
         # "EmptyCertHashZeroRTT",
         # "EmptyCertHashFullCHLO",
         "RemovedCertHashZeroRTT",
         "RemovedCertHashFullCHLO",
         "CLOSE",
-        "InvalidInitialCHLO",
-        "InvalidFullCHLO",
-        "InvalidGET",
+        # "InvalidInitialCHLO",
+        # "InvalidFullCHLO",
+        # "InvalidGET",
         # "InvalidZeroRTT",
-        "InvalidCLOSE",
+        # "InvalidCLOSE",
     ]
 
 

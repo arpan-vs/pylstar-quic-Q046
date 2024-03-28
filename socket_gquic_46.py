@@ -54,7 +54,7 @@ class Scapy:
         SessionInstance.get_instance().connection_id = str(format(conn_id, 'x').zfill(16))
         self.UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         self.UDPClientSocket.connect((SessionInstance.get_instance().destination_ip, DPORT))
-        self.UDPClientSocket.settimeout(.25)
+        self.UDPClientSocket.settimeout(.15)
 
         dhke.set_up_my_keys()
 
@@ -323,58 +323,7 @@ class Scapy:
                     return b"ERROR"
         except:
             return b"EXP"
-        
-        try:
-            ans = self.UDPClientSocket.recv(2000)
-            self.UDPClientSocket.recv(2000)
-            self.Largest_Acked +=2
 
-            packet = ans
-            div_nonce = packet[18:18+32]
-            packet_number = packet[17]
-            addData = packet[:50]
-            ciphertext = packet[50:]
-            # print(ciphertext)
-            if SessionInstance.get_instance().shlo_received == False:
-                dhke.generate_keys(SessionInstance.get_instance().peer_public_value_initial, SessionInstance.get_instance().shlo_received, False, "localhost")
-            diversed_key = dhke.diversify(SessionInstance.get_instance().initial_keys['key2'], SessionInstance.get_instance().initial_keys['iv2'], div_nonce)
-            # print(diversed_key)
-            try:
-                aesg_nonce = diversed_key['diversified_iv'] + packet_number.to_bytes(8, byteorder='little')
-                decoder = AES.new(diversed_key['diversified_key'], AES.MODE_GCM, aesg_nonce, mac_len=12)
-                decoder = decoder.update(addData)
-                plain_text = decoder.decrypt_and_verify(ciphertext[:-12],ciphertext[-12:])
-            except:
-                return b"ERROR"
-            
-            if plain_text[6:10] == b"SHLO":
-                SessionInstance.get_instance().shlo_received = True
-            
-
-            # print(plain_text)
-                
-            SNO = re.search(b"SNO\x00",plain_text).span()
-            PUBS = re.search(b"PUBS", plain_text).span()
-            SFCW = re.search(b"SFCW", plain_text).span()
-
-            sno_start, sno_end = int(plain_text[SNO[0] - 4: SNO[0]][::-1].hex(),16), int(plain_text[SNO[1]: SNO[1] + 4][::-1].hex(),16)
-            pubs_start, pubs_end = int(plain_text[PUBS[0] - 4: PUBS[0]][::-1].hex(),16), int(plain_text[PUBS[1]: PUBS[1] + 4][::-1].hex(),16)
-            value_start = SFCW[1] + 4
-            SessionInstance.get_instance().peer_public_value_final = plain_text[value_start + pubs_start:value_start + pubs_end]
-            SessionInstance.get_instance().server_nonce_final = plain_text[value_start + sno_start : value_start + sno_end].hex()
-
-            dhke.generate_keys(SessionInstance.get_instance().peer_public_value_final, SessionInstance.get_instance().shlo_received, False, "localhost")
-            
-            pattern = b"SHLO"
-            result = re.search(pattern,plain_text)
-            if result:
-                self.send_ack_for_encrypted_message()
-                return b"SHLO"
-            else:
-                return b"ERROR"
-        except:
-            return b"EXP"
-      
     def send_zerortt(self, EmptyCertHash = False, RemoveCertHash = False, InvalidPacket = False):
 
         PacketNumberInstance.get_instance().reset()
@@ -493,95 +442,6 @@ class Scapy:
         except:
             return b"EXP"
 
-        try:
-            ans = self.UDPClientSocket.recv(2000)
-            self.UDPClientSocket.recv(2000)
-            self.Largest_Acked += 2
-
-            packet = ans
-            pattern = b"REJ"
-            result = re.search(pattern, packet)
-            if result:
-                STK = re.search(b"STK\x00",packet).span()
-                SNO = re.search(b"SNO\x00",packet).span()
-                SCFG = re.search(b"SCFG",packet).span()
-                SCID = re.search(b"SCID", packet).span()
-                PUBS = re.search(b"PUBS", packet).span()
-                EXPY = re.search(b"EXPY", packet).span()
-                CRT = re.search(b"CRT\xff",packet).span()
-
-                value_start = CRT[1] + 4
-                scfg_value_start = EXPY[1] + 4
-                stk_start, stk_end = 0, int(packet[STK[1]: STK[1] + 4][::-1].hex(),16)
-                sno_start, sno_end = stk_end, int(packet[SNO[1]: SNO[1] + 4][::-1].hex(),16)
-                scfg_start, scfg_end = int(packet[SCFG[0] - 4: SCFG[0]][::-1].hex(),16), int(packet[SCFG[1]: SCFG[1] + 4][::-1].hex(),16)
-                scid_start, scid_end = int(packet[SCID[0] - 4: SCID[0]][::-1].hex(),16), int(packet[SCID[1]: SCID[1] + 4][::-1].hex(),16)
-                pubs_start, pubs_end = int(packet[PUBS[0] - 4: PUBS[0]][::-1].hex(),16), int(packet[PUBS[1]: PUBS[1] + 4][::-1].hex(),16)
-                crt_start, crt_end = int(packet[CRT[0] - 4: CRT[0]][::-1].hex(),16), int(packet[CRT[1]: CRT[1] + 4][::-1].hex(),16)
-                
-                self.server_adress_token = packet[value_start + stk_start : value_start + stk_end]
-                self.server_nonce = packet[value_start + sno_start : value_start + sno_end]
-                self.server_connection_id = packet[scfg_value_start + scid_start : scfg_value_start + scid_end]
-                PUBS_value = packet[scfg_value_start + pubs_start : scfg_value_start + pubs_end]
-
-                SessionInstance.get_instance().server_nonce_initial = self.server_nonce.hex()
-                SessionInstance.get_instance().scfg = packet[value_start + scfg_start : value_start + scfg_end].hex()
-                SessionInstance.get_instance().server_config_id = self.server_connection_id.hex()
-                SessionInstance.get_instance().source_address_token = self.server_adress_token.hex()
-                SessionInstance.get_instance().peer_public_value_initial = bytes.fromhex(PUBS_value[3:].hex())
-
-
-                CERT_chain = packet[value_start + crt_start : value_start + crt_end]
-                # print(CERT_chain.hex())
-                SessionInstance.get_instance().cert_chain = bytes.fromhex(CERT_chain[6:].hex())
-                cert_decomp.cert_Decompress()
-
-                self.send_first_ack()
-                return b"REJ"
-            else:
-                div_nonce = packet[18:18+32]
-                packet_number = packet[17]
-                addData = packet[:50]
-                ciphertext = packet[50:]
-                # print(ciphertext)
-                dhke.generate_keys(SessionInstance.get_instance().peer_public_value_initial, False, True, "localhost")
-                diversed_key = dhke.diversify(SessionInstance.get_instance().initial_keys['key2'], SessionInstance.get_instance().initial_keys['iv2'], div_nonce)
-                # print(SessionInstance.get_instance().initial_keys)
-                # print(diversed_key)
-                try:
-                    aesg_nonce = diversed_key['diversified_iv'] + packet_number.to_bytes(8, byteorder='little')
-                    decoder = AES.new(diversed_key['diversified_key'], AES.MODE_GCM, aesg_nonce, mac_len=12)
-                    decoder = decoder.update(addData)
-                    plain_text = decoder.decrypt_and_verify(ciphertext[:-12],ciphertext[-12:])
-                    # print(plain_text)
-                except:
-                    return b"ERROR"
-                
-                if plain_text[6:10] == b"SHLO":
-                    SessionInstance.get_instance().shlo_received = True
-                
-                SNO = re.search(b"SNO\x00",plain_text).span()
-                PUBS = re.search(b"PUBS", plain_text).span()
-                SFCW = re.search(b"SFCW", plain_text).span()
-
-                sno_start, sno_end = int(plain_text[SNO[0] - 4: SNO[0]][::-1].hex(),16), int(plain_text[SNO[1]: SNO[1] + 4][::-1].hex(),16)
-                pubs_start, pubs_end = int(plain_text[PUBS[0] - 4: PUBS[0]][::-1].hex(),16), int(plain_text[PUBS[1]: PUBS[1] + 4][::-1].hex(),16)
-                value_start = SFCW[1] + 4
-                SessionInstance.get_instance().peer_public_value_final = plain_text[value_start + pubs_start:value_start + pubs_end]
-                SessionInstance.get_instance().server_nonce_final = plain_text[value_start + sno_start : value_start + sno_end].hex()
-
-                dhke.generate_keys(SessionInstance.get_instance().peer_public_value_final, True, False, "localhost")
-
-                pattern = b"SHLO"
-                result = re.search(pattern,plain_text)
-                if result:
-                    self.send_ack_for_encrypted_message()
-                    return b"SHLO"
-                else:
-                    return b"ERROR"
-        except:
-            return b"EXP"
- 
     def get(self, InvalidPacket = False):
         
         frame_data = "a003002400001b012500000005000000000f"

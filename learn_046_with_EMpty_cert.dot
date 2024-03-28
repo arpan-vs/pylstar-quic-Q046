@@ -1,0 +1,85 @@
+digraph "Automata" {
+"0" [shape=doubleoctagon, style=filled, fillcolor=white, URL="0"];
+"2" [shape=ellipse, style=filled, fillcolor=white, URL="2"];
+"5" [shape=ellipse, style=filled, fillcolor=white, URL="5"];
+"6" [shape=ellipse, style=filled, fillcolor=white, URL="6"];
+"4" [shape=ellipse, style=filled, fillcolor=white, URL="4"];
+"8" [shape=ellipse, style=filled, fillcolor=white, URL="8"];
+"7" [shape=ellipse, style=filled, fillcolor=white, URL="7"];
+"3" [shape=ellipse, style=filled, fillcolor=white, URL="3"];
+"1" [shape=ellipse, style=filled, fillcolor=white, URL="1"];
+"0" -> "1" [fontsize=5, label="InitialCHLO / REJ", URL="t0"];
+"0" -> "3" [fontsize=5, label="FullCHLO / EXP", URL="t1"];
+"0" -> "0" [fontsize=5, label="GET / EXP", URL="t2"];
+"0" -> "2" [fontsize=5, label="ZeroRTT / REJ", URL="t3"];
+"0" -> "1" [fontsize=5, label="RemovedCertHashZeroRTT / REJ", URL="t4"];
+"0" -> "3" [fontsize=5, label="RemovedCertHashFullCHLO / EXP", URL="t5"];
+"0" -> "0" [fontsize=5, label="CLOSE / EXP", URL="t6"];
+"2" -> "1" [fontsize=5, label="InitialCHLO / REJ", URL="t14"];
+"2" -> "4" [fontsize=5, label="FullCHLO / SHLO", URL="t15"];
+"2" -> "2" [fontsize=5, label="GET / ERROR", URL="t16"];
+"2" -> "4" [fontsize=5, label="ZeroRTT / SHLO", URL="t17"];
+"2" -> "4" [fontsize=5, label="RemovedCertHashZeroRTT / SHLO", URL="t18"];
+"2" -> "6" [fontsize=5, label="RemovedCertHashFullCHLO / REJ", URL="t19"];
+"2" -> "5" [fontsize=5, label="CLOSE / EXP", URL="t20"];
+"5" -> "1" [fontsize=5, label="InitialCHLO / REJ", URL="t35"];
+"5" -> "5" [fontsize=5, label="FullCHLO / EXP", URL="t36"];
+"5" -> "5" [fontsize=5, label="GET / EXP", URL="t37"];
+"5" -> "4" [fontsize=5, label="ZeroRTT / SHLO", URL="t38"];
+"5" -> "4" [fontsize=5, label="RemovedCertHashZeroRTT / SHLO", URL="t39"];
+"5" -> "5" [fontsize=5, label="RemovedCertHashFullCHLO / EXP", URL="t40"];
+"5" -> "5" [fontsize=5, label="CLOSE / EXP", URL="t41"];
+"6" -> "1" [fontsize=5, label="InitialCHLO / REJ", URL="t42"];
+"6" -> "6" [fontsize=5, label="FullCHLO / EXP", URL="t43"];
+"6" -> "6" [fontsize=5, label="GET / ERROR", URL="t44"];
+"6" -> "4" [fontsize=5, label="ZeroRTT / SHLO", URL="t45"];
+"6" -> "4" [fontsize=5, label="RemovedCertHashZeroRTT / SHLO", URL="t46"];
+"6" -> "6" [fontsize=5, label="RemovedCertHashFullCHLO / EXP", URL="t47"];
+"6" -> "5" [fontsize=5, label="CLOSE / EXP", URL="t48"];
+"4" -> "7" [fontsize=5, label="InitialCHLO / REJ", URL="t28"];
+"4" -> "4" [fontsize=5, label="FullCHLO / EXP", URL="t29"];
+"4" -> "8" [fontsize=5, label="GET / HTTP", URL="t30"];
+"4" -> "4" [fontsize=5, label="ZeroRTT / SHLO", URL="t31"];
+"4" -> "4" [fontsize=5, label="RemovedCertHashZeroRTT / SHLO", URL="t32"];
+"4" -> "4" [fontsize=5, label="RemovedCertHashFullCHLO / EXP", URL="t33"];
+"4" -> "5" [fontsize=5, label="CLOSE / CLOSED", URL="t34"];
+"8" -> "7" [fontsize=5, label="InitialCHLO / REJ", URL="t56"];
+"8" -> "8" [fontsize=5, label="FullCHLO / EXP", URL="t57"];
+"8" -> "8" [fontsize=5, label="GET / ERROR", URL="t58"];
+"8" -> "4" [fontsize=5, label="ZeroRTT / SHLO", URL="t59"];
+"8" -> "4" [fontsize=5, label="RemovedCertHashZeroRTT / SHLO", URL="t60"];
+"8" -> "8" [fontsize=5, label="RemovedCertHashFullCHLO / EXP", URL="t61"];
+"8" -> "5" [fontsize=5, label="CLOSE / CLOSED", URL="t62"];
+"7" -> "7" [fontsize=5, label="InitialCHLO / REJ", URL="t49"];
+"7" -> "4" [fontsize=5, label="FullCHLO / SHLO", URL="t50"];
+"7" -> "7" [fontsize=5, label="GET / EXP", URL="t51"];
+"7" -> "4" [fontsize=5, label="ZeroRTT / SHLO", URL="t52"];
+"7" -> "4" [fontsize=5, label="RemovedCertHashZeroRTT / SHLO", URL="t53"];
+"7" -> "4" [fontsize=5, label="RemovedCertHashFullCHLO / SHLO", URL="t54"];
+"7" -> "7" [fontsize=5, label="CLOSE / EXP", URL="t55"];
+"3" -> "1" [fontsize=5, label="InitialCHLO / REJ", URL="t21"];
+"3" -> "3" [fontsize=5, label="FullCHLO / EXP", URL="t22"];
+"3" -> "3" [fontsize=5, label="GET / ERROR", URL="t23"];
+"3" -> "2" [fontsize=5, label="ZeroRTT / REJ", URL="t24"];
+"3" -> "1" [fontsize=5, label="RemovedCertHashZeroRTT / REJ", URL="t25"];
+"3" -> "3" [fontsize=5, label="RemovedCertHashFullCHLO / EXP", URL="t26"];
+"3" -> "0" [fontsize=5, label="CLOSE / EXP", URL="t27"];
+"1" -> "1" [fontsize=5, label="InitialCHLO / REJ", URL="t7"];
+"1" -> "4" [fontsize=5, label="FullCHLO / SHLO", URL="t8"];
+"1" -> "1" [fontsize=5, label="GET / ERROR", URL="t9"];
+"1" -> "4" [fontsize=5, label="ZeroRTT / SHLO", URL="t10"];
+"1" -> "4" [fontsize=5, label="RemovedCertHashZeroRTT / SHLO", URL="t11"];
+"1" -> "4" [fontsize=5, label="RemovedCertHashFullCHLO / SHLO", URL="t12"];
+"1" -> "5" [fontsize=5, label="CLOSE / EXP", URL="t13"];
+}
+
+
+==> QUIC machine Automata dumped in learn_046_with_EMpty_cert.dot
+
+Knowledge base stats: 
+	- nb query= 1573
+	- nb submited query= 590
+	- nb letter= 4283
+	- nb submited letter= 2144
+
+==> Taken Time:221.32022309303284
